@@ -388,7 +388,7 @@
 
     .pegawai-row {
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-between;
       align-items: center;
       gap: 6px;
       position: relative;
@@ -684,6 +684,33 @@
       font-size: 17px;
     }
 
+    .admin-date-filter {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: -4px 0 12px;
+      padding: 8px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .admin-date-filter input {
+      padding: 9px 10px;
+      border-radius: 11px;
+      font-size: 13px;
+    }
+
+    .admin-date-filter button {
+      width: 42px;
+      height: 38px;
+      padding: 0;
+      margin: 0;
+      border-radius: 11px;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
     .admin-header-actions {
       display: flex;
       align-items: center;
@@ -809,6 +836,7 @@
 
       <div class="pegawai-header hidden" id="pegawaiHeader">
         <div class="pegawai-row">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
           <div class="header-menu-wrap">
             <button type="button" class="header-menu-btn" data-action="toggle-header-menu">☰</button>
 
@@ -824,6 +852,12 @@
           <div class="pegawai-name" id="namaPegawaiDisplay">
             <span class="pegawai-name-main">Baharuddin</span>
             <span class="pegawai-name-sub">Perawat-PNS</span>
+          </div>
+          </div>
+
+          <div id="networkBadgeInline" class="network-badge online" style="position:static;margin-left:auto;flex-shrink:0">
+            <span class="network-dot"></span>
+            <span id="networkTextInline">Online</span>
           </div>
         </div>
       </div>
@@ -919,7 +953,7 @@
     ====================================================== -->
     <section id="adminPage" class="admin-page hidden">
       <div class="admin-header-row">
-        <h3 class="small-title">Rekap Admin Hari Ini</h3>
+        <h3 class="small-title">Pemantauan Admin</h3>
         <div class="admin-header-actions">
           <button type="button" class="admin-copy-btn" data-action="copy-belum" title="Salin daftar belum absen">⧉</button>
           <div id="copyToast" class="copy-toast hidden">Telah disalin</div>
@@ -928,6 +962,13 @@
       </div>
 
       <div id="adminArea">
+        <div class="admin-date-filter">
+          <input id="adminTanggalFilter" type="date" />
+          <button type="button" class="btn-secondary" data-action="admin-prev-date" title="Tanggal sebelumnya">‹</button>
+          <button type="button" class="btn-secondary" data-action="admin-today-date" title="Hari ini">⌂</button>
+          <button type="button" class="btn-secondary" data-action="admin-next-date" title="Tanggal berikutnya">›</button>
+        </div>
+
         <div class="admin-rekap-strip">
           <div class="admin-rekap-chip active" data-admin-chip="total">
             <div class="angka" id="adminTotal">140</div>
@@ -1086,7 +1127,8 @@
         dinas: [],
         libur: [],
         belum: []
-      }
+      },
+      adminTanggal: ''
     };
 
     const DOM = {};
@@ -1100,7 +1142,7 @@
         'keterangan', 'btnAdminPage', 'headerMenuPanel', 'btnModeHadir', 'btnModeKeterangan', 'jamHariIni', 'tanggalHariIni',
         'video', 'canvas', 'previewFoto', 'btnKirim', 'btnGps', 'btnUlangGps',
         'gpsStatus', 'gpsLat', 'gpsLng', 'gpsAcc',
-        'adminTotal', 'adminHadir', 'adminDinas', 'adminTidakHadir', 'adminBelum', 'adminDetail', 'copyToast',
+        'adminTanggalFilter', 'adminTotal', 'adminHadir', 'adminDinas', 'adminTidakHadir', 'adminBelum', 'adminDetail', 'copyToast',
         'absenDatangSummary', 'summaryDatangTitle', 'summaryDatangText',
         'absenPulangSummary', 'summaryPulangBadge', 'summaryPulangTitle', 'summaryPulangText', 'summaryPulangSpirit',
         'formAbsensiFields', 'labelDetailAbsen', 'labelKeterangan', 'btnMulaiAbsen'
@@ -1227,19 +1269,19 @@
         this.simpanRiwayat(riwayat);
       },
 
-      adminCacheKey() {
-        return this.key('admin_rekap_cache');
+      adminCacheKey(tanggal = STORAGE.todayKey()) {
+        return this.key('admin_rekap_cache_' + tanggal);
       },
 
-      ambilCacheAdmin() {
-        const cache = this.read(this.adminCacheKey(), null);
+      ambilCacheAdmin(tanggal = STORAGE.todayKey()) {
+        const cache = this.read(this.adminCacheKey(tanggal), null);
         if (!cache || !cache.waktu || !cache.data) return null;
         if ((Date.now() - Number(cache.waktu || 0)) > CONFIG.CACHE_ADMIN_MS) return null;
         return cache.data;
       },
 
-      simpanCacheAdmin(data) {
-        this.write(this.adminCacheKey(), { waktu: Date.now(), data: data });
+      simpanCacheAdmin(data, tanggal = STORAGE.todayKey()) {
+        this.write(this.adminCacheKey(tanggal), { waktu: Date.now(), data: data });
       },
 
       cleanupAbsensiLama(hari = CONFIG.CLEANUP_ABSEN_HARI) {
@@ -1293,8 +1335,8 @@
         return this.get({ aksi: 'cekRiwayatTerakhir', idPegawai: idPegawai });
       },
 
-      rekapAdminHariIni() {
-        return this.get({ aksi: 'rekapHariIni' });
+      rekapAdminHariIni(tanggal) {
+        return this.get({ aksi: 'rekapHariIni', tanggal: tanggal || STORAGE.todayKey() });
       },
 
       riwayatPegawai(idPegawai) {
@@ -1427,8 +1469,17 @@
           longitude: lokasi.longitude || '',
           accuracy: lokasi.accuracy || '',
           fotoBase64: STATE.fotoBase64 || '',
-          timestampClient: new Date(Date.now() + (8 * 60 * 60 * 1000)).toISOString()
+          timestampClient: new Date(Date.now() + (8 * 60 * 60 * 1000)).toISOString(),
+          tanggalTugas: this.tanggalTugasAbsensi(statusAbsen, detailOtomatis, datangHariIni),
+          autoLepasMalam: statusAbsen === 'Pulang' && detailOtomatis === 'Dinas Malam' ? 'YA' : ''
         };
+      },
+
+      tanggalTugasAbsensi(statusAbsen, detailAbsen, datangHariIni) {
+        if (statusAbsen === 'Pulang' && detailAbsen === 'Dinas Malam' && datangHariIni?.timestampClient) {
+          return String(datangHariIni.timestampClient).slice(0, 10);
+        }
+        return STORAGE.todayKey();
       },
 
       validasiSebelumKirim(data) {
@@ -1468,6 +1519,57 @@
           accuracy: row.accuracy || '',
           timestampClient: row.timestampClient || row.timestampServer || new Date().toISOString()
         };
+      },
+
+      normalisasiRekapAdmin(data) {
+        const sumber = Object.assign({ total: [], hadir: [], dinas: [], libur: [], belum: [] }, data || {});
+        const hasil = { total: sumber.total || [], hadir: [], dinas: [], libur: [], belum: [] };
+        const map = new Map();
+
+        function nilai(item, keys) {
+          if (!item || typeof item === 'string') return '';
+          for (let i = 0; i < keys.length; i++) {
+            if (item[keys[i]]) return item[keys[i]];
+          }
+          return '';
+        }
+
+        function kunci(item) {
+          if (typeof item === 'string') return item.trim().toUpperCase();
+          return String(
+            nilai(item, ['idPegawai', 'nik', 'id', 'ID_Pegawai']) ||
+            nilai(item, ['nama', 'Nama']) ||
+            ''
+          ).trim().toUpperCase();
+        }
+
+        function punyaJam(item) {
+          if (!item || typeof item === 'string') return false;
+          return Boolean(nilai(item, ['datang', 'jamDatang', 'jamMasuk', 'jam', 'waktuDatang']) || nilai(item, ['pulang', 'jamPulang', 'jamKeluar', 'waktuPulang']));
+        }
+
+        function prioritas(kategori, item) {
+          if (kategori === 'hadir' || kategori === 'dinas') return punyaJam(item) ? 40 : 30;
+          if (kategori === 'libur') return 20;
+          if (kategori === 'belum') return 10;
+          return 0;
+        }
+
+        ['hadir', 'dinas', 'libur', 'belum'].forEach(function(kategori) {
+          (Array.isArray(sumber[kategori]) ? sumber[kategori] : []).forEach(function(item) {
+            const key = kunci(item);
+            if (!key) return;
+            const kandidat = { kategori: kategori, item: item, skor: prioritas(kategori, item) };
+            const lama = map.get(key);
+            if (!lama || kandidat.skor >= lama.skor) map.set(key, kandidat);
+          });
+        });
+
+        map.forEach(function(row) {
+          hasil[row.kategori].push(row.item);
+        });
+
+        return hasil;
       },
 
       kelompokkanRiwayatPasangan(riwayat) {
@@ -1530,17 +1632,20 @@
         ].join('\n');
       },
 
-      teksRingkasanPulang(datang, pulang) {
+teksRingkasanPulang(datang, pulang) {
         const waktuDatang = new Date(datang.timestampClient || Date.now());
         const waktuPulang = new Date(pulang.timestampClient || Date.now());
+        const infoLepasMalam = (pulang.detailAbsen || datang.detailAbsen) === 'Dinas Malam'
+          ? '\nStatus hari ini otomatis: Lepas Malam'
+          : '';
         return [
-          'Tanggal: ' + UTIL.tanggalIndonesia(waktuPulang),
+          'Tanggal tugas: ' + (pulang.tanggalTugas || datang.tanggalTugas || STORAGE.todayKey()),
           'Datang: ' + UTIL.jamIndonesia(waktuDatang),
           'Pulang: ' + UTIL.jamIndonesia(waktuPulang),
           'Lama kerja: ' + this.formatDurasiKerja(waktuPulang - waktuDatang),
           'Jenis dinas: ' + (pulang.detailAbsen || datang.detailAbsen || '-'),
           'Koordinat pulang: ' + (pulang.latitude || '-') + ', ' + (pulang.longitude || '-'),
-          'Keterangan: ' + (pulang.keterangan || datang.keterangan || '')
+          'Keterangan: ' + (pulang.keterangan || datang.keterangan || '') + infoLepasMalam
         ].join('\n');
       },
 
@@ -1912,26 +2017,52 @@
           belum: 'Belum Lapor'
         };
 
-        if (jenis === 'hadir') {
+        function ambilJam(item, keys) {
+          if (!item || typeof item === 'string') return '';
+          for (let i = 0; i < keys.length; i++) {
+            const nilai = item[keys[i]];
+            if (nilai) return ENGINE.formatJamTampilan(nilai).slice(0, 5);
+          }
+          return '';
+        }
+
+        function ambilStatus(item) {
+          if (!item || typeof item === 'string') return '';
+          return item.detailAbsen || item.detail || item.status || item.statusAbsensi || item.jenis || '';
+        }
+
+        function ambilKeterangan(item) {
+          if (!item || typeof item === 'string') return '';
+          return item.keterangan || item.ket || item.lokasi || item.unit || '';
+        }
+
+        function formatBarisAdmin(item, nomor, jenis) {
+          if (typeof item === 'string') return nomor + '. ' + UTIL.escapeHTML(item);
+
+          const nama = UTIL.escapeHTML(item.nama || '-');
+          const status = ambilStatus(item);
+          const keterangan = ambilKeterangan(item);
+          const datang = ambilJam(item, ['datang', 'jamDatang', 'jamMasuk', 'jam', 'waktuDatang']);
+          const pulang = ambilJam(item, ['pulang', 'jamPulang', 'jamKeluar', 'waktuPulang']);
+          const tampilJam = (jenis === 'hadir' || jenis === 'dinas')
+            ? ' ' + (datang || '...') + ' - ' + (pulang || '...')
+            : '';
+          const info = [status, keterangan].filter(Boolean).join(' ');
+
+          return nomor + '. ' + nama + tampilJam + (info ? ' (' + UTIL.escapeHTML(info) + ')' : '');
+        }
+
+        if (jenis === 'hadir' || jenis === 'dinas') {
           list.sort(function(a, b) {
-            const jamA = ENGINE.formatJamTampilan(typeof a === 'string' ? '' : a.ket || '');
-            const jamB = ENGINE.formatJamTampilan(typeof b === 'string' ? '' : b.ket || '');
+            const jamA = ambilJam(a, ['datang', 'jamDatang', 'jamMasuk', 'jam', 'waktuDatang']) || '99:99';
+            const jamB = ambilJam(b, ['datang', 'jamDatang', 'jamMasuk', 'jam', 'waktuDatang']) || '99:99';
             return ENGINE.jamKeMenit(jamA) - ENGINE.jamKeMenit(jamB);
           });
         }
 
-        const isi = list.length ? list.map(function(item, i) {
-          if (typeof item === 'string') return (i + 1) + '. ' + UTIL.escapeHTML(item);
-
-          const nama = UTIL.escapeHTML(item.nama || '-');
-          const ket = item.ket ? ENGINE.formatJamTampilan(item.ket) : '';
-
-          if (jenis === 'hadir') {
-            return (i + 1) + '. ' + nama + (ket ? ' - ' + UTIL.escapeHTML(ket) : '');
-          }
-
-          return (i + 1) + '. ' + nama + (item.ket ? ' - ' + UTIL.escapeHTML(item.ket) : '');
-        }).join('<br>') : 'Tidak ada data.';
+        const isi = list.length
+          ? list.map(function(item, i) { return formatBarisAdmin(item, i + 1, jenis); }).join('<br>')
+          : 'Tidak ada data.';
 
         DOM.adminDetail.innerHTML = '<div class="admin-mini-title">' + (judulMap[jenis] || 'Detail') + '</div>' + isi;
         DOM.adminDetail.classList.remove('hidden');
@@ -2023,6 +2154,9 @@
             'open-admin': () => this.bukaAdmin(),
             'back-attendance': () => UI.kembaliKeAbsensi(),
             'refresh-admin': () => this.muatRekapAdminHariIni(true),
+            'admin-prev-date': () => this.geserTanggalAdmin(-1),
+            'admin-today-date': () => this.setTanggalAdmin(STORAGE.todayKey(), true),
+            'admin-next-date': () => this.geserTanggalAdmin(1),
             'copy-belum': () => this.salinBelumAbsen(),
             'check-employee': () => this.cekPegawai(),
             'mode-hadir': () => this.setModeHadir(),
@@ -2046,6 +2180,10 @@
 
         if (DOM.keterangan) {
           DOM.keterangan.addEventListener('input', () => UI.updateTombolMulaiAbsen());
+        }
+
+        if (DOM.adminTanggalFilter) {
+          DOM.adminTanggalFilter.addEventListener('change', () => this.setTanggalAdmin(DOM.adminTanggalFilter.value, true));
         }
 
         window.addEventListener('online', () => UI.updateNetworkStatus());
@@ -2349,24 +2487,40 @@
       },
 
       muatAdminDariCache() {
-        const cache = STORAGE.ambilCacheAdmin();
+        const tanggal = STATE.adminTanggal || STORAGE.todayKey();
+        const cache = STORAGE.ambilCacheAdmin(tanggal);
         if (cache) {
-          STATE.adminRekap = Object.assign(STATE.adminRekap, cache);
+          STATE.adminRekap = ENGINE.normalisasiRekapAdmin(Object.assign(STATE.adminRekap, cache));
           UI.renderAdminRekap(STATE.adminRekap);
         }
       },
 
       async bukaAdmin() {
+        if (!STATE.adminTanggal) STATE.adminTanggal = STORAGE.todayKey();
+        if (DOM.adminTanggalFilter) DOM.adminTanggalFilter.value = STATE.adminTanggal;
         UI.tampilkanAdmin();
         this.muatAdminDariCache();
         await this.muatRekapAdminHariIni(false);
       },
 
+      setTanggalAdmin(tanggal, refresh) {
+        STATE.adminTanggal = tanggal || STORAGE.todayKey();
+        if (DOM.adminTanggalFilter) DOM.adminTanggalFilter.value = STATE.adminTanggal;
+        if (refresh) this.muatRekapAdminHariIni(true);
+      },
+
+      geserTanggalAdmin(arah) {
+        const dasar = STATE.adminTanggal || STORAGE.todayKey();
+        const d = new Date(dasar + 'T00:00:00');
+        d.setDate(d.getDate() + arah);
+        this.setTanggalAdmin(d.toISOString().slice(0, 10), true);
+      },
+
       async muatRekapAdminHariIni(paksaRefresh) {
         if (!paksaRefresh) {
-          const cache = STORAGE.ambilCacheAdmin();
+          const cache = STORAGE.ambilCacheAdmin(STATE.adminTanggal || STORAGE.todayKey());
           if (cache) {
-            STATE.adminRekap = Object.assign({ total: [], hadir: [], dinas: [], libur: [], belum: [] }, cache);
+            STATE.adminRekap = ENGINE.normalisasiRekapAdmin(Object.assign({ total: [], hadir: [], dinas: [], libur: [], belum: [] }, cache));
             UI.renderAdminRekap(STATE.adminRekap);
             return;
           }
@@ -2375,10 +2529,11 @@
         UI.setStatus('Memuat rekap admin...', 'warning');
 
         try {
-          const res = await API.rekapAdminHariIni();
+          const tanggal = STATE.adminTanggal || STORAGE.todayKey();
+          const res = await API.rekapAdminHariIni(tanggal);
           if (res && res.sukses && res.data) {
-            STATE.adminRekap = Object.assign({ total: [], hadir: [], dinas: [], libur: [], belum: [] }, res.data);
-            STORAGE.simpanCacheAdmin(STATE.adminRekap);
+            STATE.adminRekap = ENGINE.normalisasiRekapAdmin(Object.assign({ total: [], hadir: [], dinas: [], libur: [], belum: [] }, res.data));
+            STORAGE.simpanCacheAdmin(STATE.adminRekap, STATE.adminTanggal || STORAGE.todayKey());
             UI.renderAdminRekap(STATE.adminRekap);
             UI.setStatus('Rekap admin berhasil diperbarui.', 'success');
           } else {
@@ -2393,7 +2548,7 @@
       buatTeksBelumAbsen() {
         const data = STATE.adminRekap || {};
         const list = Array.isArray(data.belum) ? data.belum.slice() : [];
-        const tanggal = UTIL.tanggalIndonesia(new Date());
+        const tanggal = UTIL.tanggalIndonesia(new Date((STATE.adminTanggal || STORAGE.todayKey()) + 'T00:00:00'));
 
         const baris = list.length
           ? list.map(function(nama, i) {

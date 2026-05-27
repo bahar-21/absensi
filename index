@@ -3,10 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Absensi Digital Puskesmas Lawawoi</title>
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="description" content="Aplikasi internal absensi pegawai UPT Puskesmas Lawawoi." />
+  <meta name="application-name" content="Absensi Lawawoi" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Absensi Lawawoi" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Absensi Digital UPT Puskesmas Lawawoi</title>
 
   <style>
-    * { box-sizing: border-box; }
+    /* =========================================================
+       ABSENSI DIGITAL PUSKESMAS LAWAWOI
+       Versi dasar hasil susun ulang
+       - Single HTML
+       - Vanilla HTML/CSS/JS
+       - Apps Script + Google Sheet
+       - Struktur: CONFIG, STATE, STORAGE, API, ENGINE, MEDIA, UI, APP
+    ========================================================= */
+
+    /* =========================================================
+       1. RESET & DASAR APLIKASI
+    ========================================================= */
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -21,30 +45,61 @@
       margin: auto;
       background: #ffffff;
       padding: 18px;
+      padding-bottom: 96px;
     }
 
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================================================
+       2. HEADER
+    ========================================================= */
     .header {
-      margin: -18px -18px 20px;
-      padding: 24px 18px;
+      position: relative;
+      margin: -18px -18px 14px;
+      padding: 18px 16px 14px;
       background: linear-gradient(135deg, #0f766e, #115e59);
       color: white;
+      border-radius: 0 0 24px 24px;
+      box-shadow: 0 8px 18px rgba(15, 118, 110, .20);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
       text-align: center;
-      border-radius: 0 0 26px 26px;
-      box-shadow: 0 8px 20px rgba(15, 118, 110, .25);
     }
 
     .header h1 {
       margin: 0;
-      font-size: 22px;
+      line-height: 1.1;
+      font-size: 18px;
       letter-spacing: .3px;
     }
 
     .header p {
-      margin: 7px 0 0;
-      font-size: 13px;
+      margin: 4px 0 0;
+      font-size: 11px;
       opacity: .92;
     }
 
+    .kop-logo {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      flex-shrink: 0;
+      background: transparent !important;
+      margin-top: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+
+    /* =========================================================
+       3. CARD, FORM, BUTTON
+    ========================================================= */
     .card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
@@ -52,6 +107,15 @@
       padding: 16px;
       box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
       margin-bottom: 14px;
+    }
+
+    .small-title {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: .5px;
     }
 
     label {
@@ -62,7 +126,9 @@
       color: #334155;
     }
 
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       width: 100%;
       padding: 13px;
       border: 1px solid #cbd5e1;
@@ -72,7 +138,9 @@
       outline: none;
     }
 
-    input:focus, select:focus, textarea:focus {
+    input:focus,
+    select:focus,
+    textarea:focus {
       border-color: #0f766e;
       box-shadow: 0 0 0 3px rgba(15, 118, 110, .14);
     }
@@ -82,7 +150,7 @@
       border: none;
       border-radius: 15px;
       padding: 14px;
-      font-size: 16px;
+      font-size: 13px;
       font-weight: 800;
       cursor: pointer;
       margin-top: 12px;
@@ -98,37 +166,27 @@
       color: white;
     }
 
-    .btn-main:hover { background: #115e59; }
+    .btn-main:hover {
+      background: #115e59;
+    }
 
     .btn-secondary {
       background: #e2e8f0;
       color: #0f172a;
     }
 
-    .btn-danger {
-      background: #dc2626;
-      color: white;
+    .note {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.5;
     }
 
-    .btn-light {
-      background: #f8fafc;
-      color: #334155;
-      border: 1px solid #e2e8f0;
-    }
-
-    video, canvas, img {
-      width: 100%;
-      border-radius: 18px;
-      background: #020617;
-      margin-top: 12px;
-      display: block;
-    }
-
-    canvas { display: none; }
-
-    .hidden { display: none !important; }
-
+    /* =========================================================
+       4. STATUS & INFORMASI
+    ========================================================= */
     .status {
+      position: relative;
       margin-top: 14px;
       padding: 13px;
       border-radius: 13px;
@@ -157,11 +215,373 @@
       border-color: #fde68a;
     }
 
-    .note {
-      margin-top: 10px;
+    .status-close {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      margin: 0;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, .12);
+      color: inherit;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .label-row {
+      display: block;
+      margin: 12px 0 6px;
+    }
+
+    .label-row label {
+      margin: 0;
+    }
+
+    /* =========================================================
+       5. JAM & TANGGAL
+    ========================================================= */
+    .time-box {
+      position: relative;
+      background: #ecfdf5;
+      border: 1px solid #bbf7d0;
+      color: #064e3b;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .time-box .clock {
+      font-family: "Courier New", Consolas, monospace;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      line-height: 1;
+      color: #022c22;
+    }
+
+    .time-box .date {
       font-size: 12px;
-      color: #64748b;
-      line-height: 1.5;
+      font-weight: 700;
+      margin-top: 3px;
+      color: #0f766e;
+    }
+
+    /* =========================================================
+       6. NAVIGASI CEPAT
+    ========================================================= */
+    .header-menu-wrap {
+      position: relative;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .header-menu-btn {
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      padding: 0;
+      border-radius: 8px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.16);
+      color: #ffffff;
+      font-size: 16px;
+      line-height: 1;
+      backdrop-filter: blur(4px);
+    }
+
+    .header-menu-panel {
+      position: absolute;
+      top: 30px;
+      left: 0;
+      width: 138px;
+      padding: 7px 0;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 12px 24px rgba(15,23,42,.16);
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      max-width: calc(100vw - 40px);
+    }
+
+    .header-menu-item {
+      width: 100%;
+      margin: 0;
+      padding: 9px 12px;
+      border: 0;
+      border-radius: 0;
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .header-menu-item:active {
+      background: #f1f5f9;
+    }
+
+    .danger-menu {
+      color: #b91c1c;
+    }
+
+    /* =========================================================
+       7. REGISTRASI
+    ========================================================= */
+    .nik-row {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      gap: 5px;
+      align-items: end;
+    }
+
+    .nik-row button {
+      margin-top: 0;
+      padding: 13px 8px;
+      font-size: 14px;
+    }
+
+    /* =========================================================
+       8. IDENTITAS PEGAWAI
+    ========================================================= */
+    .network-badge {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .network-badge.offline {
+      background: rgba(220, 38, 38, .92);
+      border-color: rgba(254, 202, 202, .8);
+    }
+
+    .network-badge.online {
+      background: rgba(22, 163, 74, .92);
+      border-color: rgba(187, 247, 208, .8);
+    }
+
+    .network-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .pegawai-header {
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(255,255,255,.14);
+    }
+
+    .pegawai-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      min-width: 0;
+    }
+
+    .pegawai-name {
+      display: flex;
+      justify-content: flex-start;
+      align-items: baseline;
+      gap: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pegawai-name-main {
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(255,255,255,.96);
+    }
+
+    .pegawai-name-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,.82);
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin: 0 0 12px;
+      padding: 4px;
+      border-radius: 14px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+    }
+
+    .mode-btn {
+      margin: 0;
+      padding: 8px 6px;
+      border-radius: 11px;
+      background: transparent;
+      color: #475569;
+      border: 0;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .mode-btn.active {
+      background: #0f766e;
+      color: #ffffff;
+      box-shadow: none;
+    }
+
+    .absen-summary {
+      background: #ecfdf5;
+      border: 1px solid #99f6e4;
+      border-radius: 18px;
+      padding: 15px;
+      margin-bottom: 14px;
+      color: #134e4a;
+    }
+
+    .absen-summary .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #0f766e;
+      color: white;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .3px;
+      margin-bottom: 8px;
+    }
+
+    .absen-summary .title {
+      font-size: 17px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .absen-summary .text {
+      font-size: 13px;
+      line-height: 1.55;
+      color: #334155;
+      white-space: pre-line;
+    }
+
+    .absen-summary .spirit {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #047857;
+    }
+
+    /* =========================================================
+       9. KAMERA, FOTO, GPS
+    ========================================================= */
+    video,
+    canvas,
+    img {
+      width: 100%;
+      border-radius: 18px;
+      background: #020617;
+      margin-top: 12px;
+      display: block;
+    }
+
+    #cameraArea {
+      padding-top: 8px;
+    }
+
+    #cameraArea .time-box {
+      margin-bottom: 6px;
+    }
+
+    #cameraArea .small-title {
+      margin-bottom: 6px;
+    }
+
+    #video {
+      height: 58vh;
+      max-height: 430px;
+      min-height: 330px;
+      object-fit: cover;
+      object-position: center top;
+      margin-top: 8px;
+    }
+
+    #previewFoto {
+      width: 112px;
+      height: 112px;
+      margin: 10px auto 8px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center center;
+      border: 4px solid #ffffff;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, .16);
+      background: #020617;
+    }
+
+    canvas {
+      display: none;
+    }
+
+    .camera-wrap,
+    .photo-box,
+    .gps-box {
+      position: relative;
+    }
+
+    .face-guide {
+      position: absolute;
+      width: 176px;
+      height: 218px;
+      border: 3px dashed rgba(255,255,255,.75);
+      border-radius: 50%;
+      top: 43%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .mini-action,
+    .gps-refresh {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      margin: 0;
+      border-radius: 50%;
+      color: white;
+      font-weight: 900;
+      z-index: 5;
+    }
+
+    .mini-action {
+      top: 50%;
+      right: calc(50% - 72px);
+      background: rgba(15, 23, 42, .78);
+      font-size: 20px;
+      box-shadow: 0 6px 14px rgba(0,0,0,.25);
+    }
+
+    .gps-refresh {
+      top: 8px;
+      right: 8px;
+      width: 34px;
+      height: 34px;
+      background: #0f766e;
+      font-size: 16px;
     }
 
     .gps-box {
@@ -181,338 +601,1899 @@
       gap: 10px;
     }
 
-    .row span:first-child { color: #64748b; }
-    .row span:last-child { font-weight: 700; text-align: right; }
+    .row span:first-child {
+      color: #64748b;
+    }
 
-    .camera-wrap {
+    .row span:last-child {
+      font-weight: 700;
+      text-align: right;
+    }
+
+    /* =========================================================
+       10. RIWAYAT
+    ========================================================= */
+    .riwayat-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .riwayat-card {
+      background: #ecfdf5;
+      border: 1px solid #99f6e4;
+      border-radius: 18px;
+      padding: 13px;
+      color: #134e4a;
+    }
+
+    .riwayat-card .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #0f766e;
+      color: white;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .3px;
+      margin-bottom: 7px;
+    }
+
+    .riwayat-card .title {
+      font-size: 15px;
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .riwayat-card .text {
+      font-size: 13px;
+      line-height: 1.55;
+      color: #334155;
+      white-space: pre-line;
+    }
+
+    /* =========================================================
+       11. ADMIN
+    ========================================================= */
+    .admin-page {
+      padding-top: 2px;
+    }
+
+    .admin-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .admin-back-btn,
+    .admin-copy-btn {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      margin: 0;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-size: 18px;
+    }
+
+    .admin-copy-btn {
+      background: #dcfce7;
+      color: #166534;
+      font-size: 17px;
+    }
+
+    .admin-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
       position: relative;
     }
 
-    .face-guide {
+    .copy-toast {
       position: absolute;
-      width: 170px;
-      height: 210px;
-      border: 3px dashed rgba(255,255,255,.75);
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
+      top: 44px;
+      right: 44px;
+      background: #166534;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 9px;
+      border-radius: 999px;
+      box-shadow: 0 6px 14px rgba(0,0,0,.16);
+      white-space: nowrap;
+      animation: fadeCopy .18s ease;
     }
 
-    .small-title {
-      margin: 0 0 10px;
-      font-size: 14px;
-      font-weight: 800;
+    @keyframes fadeCopy {
+      from {
+        opacity: 0;
+        transform: translateY(-2px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .admin-rekap-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin: 0 0 14px;
+    }
+
+    .admin-rekap-chip {
+      border-radius: 12px;
+      padding: 7px 3px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      text-align: center;
+      cursor: pointer;
+      min-width: 0;
+      transition: .15s ease;
+    }
+
+    .admin-rekap-chip.active {
+      background: #0f766e;
+      border-color: #0f766e;
+      box-shadow: 0 8px 16px rgba(15,118,110,.18);
+    }
+
+    .admin-rekap-chip.active .angka,
+    .admin-rekap-chip.active .label {
+      color: #ffffff;
+    }
+
+    .admin-rekap-chip .angka {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1;
       color: #0f172a;
+    }
+
+    .admin-rekap-chip .label {
+      margin-top: 3px;
+      font-size: 9px;
+      font-weight: 800;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .admin-mini-panel {
+      margin-top: 8px;
+      padding: 11px;
+      border-radius: 14px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 8px 18px rgba(15,23,42,.08);
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-line;
+    }
+
+    .admin-mini-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: #0f766e;
+      margin-bottom: 7px;
       text-transform: uppercase;
-      letter-spacing: .5px;
+      letter-spacing: .4px;
     }
   </style>
 </head>
 
 <body>
-  <div class="app">
-    <div class="header">
-      <h1>Absensi Digital</h1>
-      <p>Puskesmas Lawawoi</p>
-    </div>
+  <div class="app" id="app">
+    <!-- =====================================================
+      HEADER
+    ====================================================== -->
+    <header class="header">
+      <div id="networkBadge" class="network-badge online"><span class="network-dot"></span><span id="networkText">Online</span></div>
+      <div class="header-inner">
+        <img
+          class="kop-logo"
+          src="https://upload.wikimedia.org/wikipedia/commons/b/b7/Official_Logo_of_Sidenreng_Rappang_Regency.png"
+          onerror="this.style.display='none'"
+          alt="Logo Sidrap"
+        />
+        <div>
+          <h1>Absensi Digital Pegawai</h1>
+          <p>Aplikasi Internal UPT Puskesmas Lawawoi</p>
+        </div>
+      </div>
 
-    <div id="formArea" class="card">
-      <h3 class="small-title">Form Absensi</h3>
+      <div class="pegawai-header hidden" id="pegawaiHeader">
+        <div class="pegawai-row">
+          <div class="header-menu-wrap">
+            <button type="button" class="header-menu-btn" data-action="toggle-header-menu">☰</button>
 
-      <label>Nama Pegawai</label>
-      <input id="nama" type="text" placeholder="Masukkan nama lengkap" autocomplete="name" />
+            <div id="headerMenuPanel" class="header-menu-panel hidden">
+              <button type="button" class="header-menu-item" data-action="refresh-status">Refresh</button>
+              <button type="button" class="header-menu-item" data-action="open-history">Riwayat</button>
+              <button type="button" id="btnAdminPage" class="header-menu-item hidden" data-action="open-admin">Admin</button>
+              <button type="button" class="header-menu-item" data-action="switch-user">Ganti User</button>
+              <button type="button" class="header-menu-item danger-menu" data-action="reset-device">Reset Perangkat</button>
+            </div>
+          </div>
 
-      <label>Status Absensi</label>
-      <select id="statusAbsen">
-        <option value="">-- Pilih Status --</option>
-        <option value="Datang">Datang</option>
-        <option value="Pulang">Pulang</option>
-        <option value="Libur">Libur</option>
-        <option value="Dinas Luar">Dinas Luar</option>
-        <option value="Dinas Sore">Dinas Sore</option>
-        <option value="Dinas Malam">Dinas Malam</option>
-      </select>
+          <div class="pegawai-name" id="namaPegawaiDisplay">
+            <span class="pegawai-name-main">Baharuddin</span>
+            <span class="pegawai-name-sub">Perawat-PNS</span>
+          </div>
+        </div>
+      </div>
+    </header>
 
-      <label>Keterangan / Lokasi Tugas</label>
-      <textarea id="keterangan" rows="2" placeholder="Opsional, contoh: Posyandu / UGD / Piket malam"></textarea>
+    
 
-      <button class="btn-main" onclick="bukaKamera()">Buka Kamera</button>
+    <!-- =====================================================
+      REGISTRASI PERANGKAT
+    ====================================================== -->
+    <section id="registerArea" class="card hidden">
+      <div class="time-box">
+        <div class="clock currentClockText">--:--:--</div>
+        <div class="date currentDateText">-</div>
+      </div>
+
+      <h3 class="small-title">Verifikasi Perangkat</h3>
+      <label for="inputIdPegawai">Verifikasi ID Pegawai</label>
+      <div class="nik-row">
+        <input id="inputIdPegawai" type="tel" inputmode="numeric" placeholder="Masukkan ID Pegawai" autocomplete="off" />
+        <button type="button" class="btn-main" data-action="check-employee">Cek ID</button>
+      </div>
 
       <div class="note">
-        Versi asli: tidak memakai foto dummy dan tidak memakai GPS simulasi. Jika kamera atau GPS gagal, absensi tidak dikirim.
+        Gunakan ID Pegawai resmi yang diberikan admin aplikasi.
       </div>
-    </div>
+      <div id="registerMessage" class="status hidden"></div>
+    </section>
 
-    <div id="cameraArea" class="card hidden">
-      <h3 class="small-title">Ambil Foto</h3>
+    <!-- =====================================================
+      FORM ABSENSI
+    ====================================================== -->
+    <main id="formArea" class="card">
+      <div class="time-box">
+        <div class="clock" id="jamHariIni">--:--:--</div>
+        <div class="date" id="tanggalHariIni">-</div>
+      </div>
+
+      <div class="mode-switch" id="modeSwitch">
+        <button type="button" id="btnModeHadir" class="mode-btn active" data-action="mode-hadir">Absensi</button>
+        <button type="button" id="btnModeKeterangan" class="mode-btn" data-action="mode-keterangan">Keterangan</button>
+      </div>
+
+      <section id="absensiPage">
+        <div id="absenDatangSummary" class="absen-summary hidden">
+          <span class="badge">ABSEN DATANG TERCATAT</span>
+          <div class="title" id="summaryDatangTitle">-</div>
+          <div class="text" id="summaryDatangText">-</div>
+          <div class="spirit">Selamat bekerja, semoga tugas hari ini lancar dan bernilai ibadah.</div>
+          <button type="button" class="btn-main" data-action="start-checkout">ABSENSI PULANG</button>
+        </div>
+
+        <div id="absenPulangSummary" class="absen-summary hidden">
+          <span class="badge" id="summaryPulangBadge">ABSEN PULANG TERCATAT</span>
+          <div class="title" id="summaryPulangTitle">-</div>
+          <div class="text" id="summaryPulangText">-</div>
+          <div class="spirit" id="summaryPulangSpirit">Terima kasih atas pelayanan hari ini. Semoga sehat selalu.</div>
+          <button type="button" class="btn-main" data-action="finish-checkout">OK</button>
+        </div>
+
+        <section id="formAbsensiFields">
+          <h3 class="small-title">Form Absensi</h3>
+
+          <input id="nama" type="hidden" />
+          <input id="idPegawai" type="hidden" />
+          <input id="jabatanPegawai" type="hidden" />
+          <input id="unitPegawai" type="hidden" />
+
+          <div class="label-row">
+            <label id="labelDetailAbsen" for="detailAbsen">Jenis Dinas / Kegiatan</label>
+          </div>
+          <select id="detailAbsen">
+            <option>Dinas Pagi</option>
+            <option>Dinas Luar</option>
+          </select>
+
+          <div class="label-row">
+            <label id="labelKeterangan" for="keterangan">Keterangan / Lokasi Kegiatan</label>
+          </div>
+          <textarea id="keterangan" rows="2" placeholder="Contoh: UGD, Rawat Inap, Poliklinik Umum"></textarea>
+
+          <button id="btnMulaiAbsen" type="button" class="btn-main" data-action="start-attendance">Ambil Foto</button>
+
+          <div class="note">
+            Foto dan lokasi digunakan untuk verifikasi kehadiran pegawai pada sistem absensi internal.
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- =====================================================
+      ADMIN
+    ====================================================== -->
+    <section id="adminPage" class="admin-page hidden">
+      <div class="admin-header-row">
+        <h3 class="small-title">Rekap Admin Hari Ini</h3>
+        <div class="admin-header-actions">
+          <button type="button" class="admin-copy-btn" data-action="copy-belum" title="Salin daftar belum absen">⧉</button>
+          <div id="copyToast" class="copy-toast hidden">Telah disalin</div>
+          <button type="button" class="admin-back-btn" data-action="back-attendance" title="Kembali ke Absensi">↩</button>
+        </div>
+      </div>
+
+      <div id="adminArea">
+        <div class="admin-rekap-strip">
+          <div class="admin-rekap-chip active" data-admin-chip="total">
+            <div class="angka" id="adminTotal">140</div>
+            <div class="label">Total</div>
+          </div>
+          <div class="admin-rekap-chip" data-admin-chip="hadir">
+            <div class="angka" id="adminHadir">98</div>
+            <div class="label">Dinas Pagi</div>
+          </div>
+          <div class="admin-rekap-chip" data-admin-chip="dinas">
+            <div class="angka" id="adminDinas">8</div>
+            <div class="label">Dinas Lain</div>
+          </div>
+          <div class="admin-rekap-chip" data-admin-chip="libur">
+            <div class="angka" id="adminTidakHadir">12</div>
+            <div class="label">Tidak Hadir</div>
+          </div>
+          <div class="admin-rekap-chip" data-admin-chip="belum">
+            <div class="angka" id="adminBelum">22</div>
+            <div class="label">Belum Lapor</div>
+          </div>
+        </div>
+
+        <div id="adminDetail" class="admin-mini-panel hidden"></div>
+
+        <button type="button" class="btn-secondary" data-action="refresh-admin" style="margin-top:10px">Refresh Rekap Admin</button>
+      </div>
+    </section>
+
+    <!-- =====================================================
+      KAMERA
+    ====================================================== -->
+    <section id="cameraArea" class="card hidden">
+      <div class="time-box">
+        <div class="clock currentClockText">--:--:--</div>
+        <div class="date currentDateText">-</div>
+      </div>
+
+      <h3 class="small-title">Verifikasi Foto Kehadiran</h3>
       <div class="camera-wrap">
         <video id="video" autoplay playsinline muted></video>
         <div class="face-guide"></div>
       </div>
-      <button class="btn-main" onclick="ambilFoto()">Ambil Foto</button>
-      <button class="btn-secondary" onclick="tutupKamera()">Kembali</button>
-    </div>
+      <button type="button" class="btn-main" data-action="capture-photo">Ambil Foto</button>
+      <button type="button" class="btn-secondary" data-action="close-camera">Kembali</button>
+    </section>
 
-    <div id="previewArea" class="card hidden">
-      <h3 class="small-title">Pratinjau & GPS</h3>
-      <img id="previewFoto" alt="Foto absensi" />
+    <!-- =====================================================
+      PREVIEW FOTO & GPS
+    ====================================================== -->
+    <section id="previewArea" class="card hidden">
+      <div class="time-box">
+        <div class="clock currentClockText">--:--:--</div>
+        <div class="date currentDateText">-</div>
+      </div>
+
+      <h3 class="small-title">Verifikasi Lokasi Kehadiran</h3>
+      <div class="photo-box">
+        <img id="previewFoto" alt="Foto absensi" />
+        <button type="button" class="mini-action" data-action="retake-photo" title="Ambil ulang foto">↻</button>
+      </div>
       <canvas id="canvas"></canvas>
 
       <div class="gps-box">
+        <button id="btnUlangGps" type="button" class="gps-refresh hidden" data-action="get-gps" title="Ambil ulang GPS">↻</button>
         <div class="row"><span>Status GPS</span><span id="gpsStatus">Belum diambil</span></div>
         <div class="row"><span>Latitude</span><span id="gpsLat">-</span></div>
         <div class="row"><span>Longitude</span><span id="gpsLng">-</span></div>
         <div class="row"><span>Akurasi</span><span id="gpsAcc">-</span></div>
       </div>
 
-      <button class="btn-light" onclick="ambilGPSManual()">Ambil / Perbarui GPS</button>
-      <button id="btnKirim" class="btn-main" onclick="kirimAbsensi()">Kirim Absensi</button>
-      <button class="btn-danger" onclick="ambilUlang()">Ambil Ulang Foto</button>
-    </div>
+      <button id="btnGps" type="button" class="btn-main" data-action="get-gps">Ambil Lokasi</button>
+      <button id="btnKirim" type="button" class="btn-main hidden" data-action="send-attendance">Kirim</button>
+    </section>
 
-    <div id="statusBox" class="status hidden"></div>
+    <!-- =====================================================
+      STATUS GLOBAL
+    ====================================================== -->
+    <section id="statusBox" class="status hidden"></section>
+
+    <!-- =====================================================
+      RIWAYAT
+    ====================================================== -->
+    <section id="rekapArea" class="card hidden">
+      <h3 class="small-title">Riwayat Kehadiran Pegawai</h3>
+      <div id="rekapContent" class="status"></div>
+      <button type="button" class="btn-secondary" data-action="close-history">Tutup</button>
+    </section>
   </div>
 
   <script>
-    // GANTI DENGAN LINK WEB APP APPS SCRIPT /exec
-    // Contoh: https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxx/exec
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1H2Klg2I0jdV1uTRdscNoSEDbmWD7FvYGKEpJ-89uuDLez4jw4b6i407vXXI1Sq_f/exec';
+    /* =========================================================
+       FINAL — MESIN APLIKASI
+       Urutan kode:
+       1. CONFIG
+       2. STATE
+       3. DOM
+       4. UTIL
+       5. STORAGE
+       6. API
+       7. ENGINE
+       8. MEDIA
+       9. UI
+       10. APP
+    ========================================================= */
 
-    let stream = null;
-    let fotoBase64 = null;
-    let lokasiTerakhir = null;
-    let sedangKirim = false;
-
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const previewFoto = document.getElementById('previewFoto');
-    const statusBox = document.getElementById('statusBox');
-    const btnKirim = document.getElementById('btnKirim');
-
-    window.onload = function () {
-      document.getElementById('nama').value = localStorage.getItem('absen_nama') || '';
+    const CONFIG = {
+      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycby1H2Klg2I0jdV1uTRdscNoSEDbmWD7FvYGKEpJ-89uuDLez4jw4b6i407vXXI1Sq_f/exec',
+      ADMIN_IDS: ['198001022005021003'],
+      MODE_UJI_COBA: true,
+      TESTER_ID: '0000',
+      CACHE_ADMIN_MS: 5 * 60 * 1000,
+      RIWAYAT_LIMIT: 30,
+      CLEANUP_ABSEN_HARI: 30,
+      STORAGE_PREFIX: 'absensi_lawawoi_',
+      FOTO_MAX_WIDTH: 280,
+      FOTO_QUALITY: 0.70,
+      GPS_TIMEOUT_MS: 15000,
+      GPS_MAX_AGE_MS: 0,
+      JADWAL_DINAS: {
+        Datang: [
+          { nama: 'Dinas Pagi', mulai: '07:15', selesai: '12:00' },
+          { nama: 'Dinas Sore', mulai: '13:45', selesai: '18:00' },
+          { nama: 'Dinas Malam', mulai: '19:45', selesai: '23:00' }
+        ],
+        Pulang: [
+          { nama: 'Dinas Pagi', mulai: '11:30', selesai: '18:00' },
+          { nama: 'Dinas Sore', mulai: '20:00', selesai: '23:00' },
+          { nama: 'Dinas Malam', mulai: '08:00', selesai: '10:00' }
+        ],
+        Keterangan: [
+          { nama: 'Libur', batas: '08:00' },
+          { nama: 'Sakit', batas: '08:00' },
+          { nama: 'Cuti', batas: '08:00' },
+          { nama: 'Lepas Malam', batas: '08:00' },
+          { nama: 'Dinas Luar', batas: '08:00' },
+          { nama: 'Dinas Sore', batas: '08:00' },
+          { nama: 'Dinas Malam', batas: '08:00' }
+        ]
+      }
     };
 
-    function tampilStatus(pesan, tipe = '') {
-      statusBox.className = 'status ' + tipe;
-      statusBox.textContent = pesan;
-      statusBox.classList.remove('hidden');
-    }
-
-    function setGpsUI(lokasi) {
-      if (!lokasi) {
-        document.getElementById('gpsStatus').textContent = 'Belum diambil';
-        document.getElementById('gpsLat').textContent = '-';
-        document.getElementById('gpsLng').textContent = '-';
-        document.getElementById('gpsAcc').textContent = '-';
-        return;
+    const STATE = {
+      pegawaiAktif: null,
+      menuAbsenAktif: 'Datang',
+      lokasiTerakhir: null,
+      fotoBase64: null,
+      sedangKirim: false,
+      baruSajaKirim: false,
+      stream: null,
+      menitDropdownTerakhir: null,
+      terakhirServer: null,
+      adminRekap: {
+        total: [],
+        hadir: [],
+        dinas: [],
+        libur: [],
+        belum: []
       }
+    };
 
-      document.getElementById('gpsStatus').textContent = 'GPS berhasil';
-      document.getElementById('gpsLat').textContent = lokasi.latitude;
-      document.getElementById('gpsLng').textContent = lokasi.longitude;
-      document.getElementById('gpsAcc').textContent = Math.round(lokasi.accuracy) + ' meter';
-    }
+    const DOM = {};
 
-    function validasiForm() {
-      const nama = document.getElementById('nama').value.trim();
-      const statusAbsen = document.getElementById('statusAbsen').value;
-
-      if (!nama) {
-        alert('Nama pegawai wajib diisi.');
-        return false;
-      }
-
-      if (!statusAbsen) {
-        alert('Status absensi wajib dipilih.');
-        return false;
-      }
-
-      localStorage.setItem('absen_nama', nama);
-      return true;
-    }
-
-    async function bukaKamera() {
-      if (!validasiForm()) return;
-
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'user',
-            width: { ideal: 640 },
-            height: { ideal: 480 }
-          },
-          audio: false
-        });
-
-        video.srcObject = stream;
-
-        document.getElementById('formArea').classList.add('hidden');
-        document.getElementById('cameraArea').classList.remove('hidden');
-        document.getElementById('previewArea').classList.add('hidden');
-        statusBox.classList.add('hidden');
-      } catch (err) {
-        tampilStatus('❌ Kamera gagal dibuka.\nPastikan browser mengizinkan kamera dan halaman dibuka melalui HTTPS.', 'error');
-      }
-    }
-
-    function tutupKamera() {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-      }
-
-      document.getElementById('cameraArea').classList.add('hidden');
-      document.getElementById('formArea').classList.remove('hidden');
-    }
-
-    function ambilFoto() {
-      const w = video.videoWidth || 640;
-      const h = video.videoHeight || 480;
-
-      canvas.width = w;
-      canvas.height = h;
-
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, w, h);
-
-      fotoBase64 = canvas.toDataURL('image/jpeg', 0.72);
-      previewFoto.src = fotoBase64;
-
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-      }
-
-      lokasiTerakhir = null;
-      setGpsUI(null);
-
-      document.getElementById('cameraArea').classList.add('hidden');
-      document.getElementById('previewArea').classList.remove('hidden');
-      tampilStatus('Foto berhasil diambil. Silakan ambil GPS lalu kirim absensi.', 'warning');
-    }
-
-    function ambilUlang() {
-      fotoBase64 = null;
-      lokasiTerakhir = null;
-      setGpsUI(null);
-      document.getElementById('previewArea').classList.add('hidden');
-      bukaKamera();
-    }
-
-    function ambilGPS() {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject('GPS tidak tersedia di perangkat ini.');
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-          posisi => {
-            resolve({
-              latitude: posisi.coords.latitude,
-              longitude: posisi.coords.longitude,
-              accuracy: posisi.coords.accuracy
-            });
-          },
-          error => {
-            reject('GPS gagal diambil. Pastikan lokasi/GPS aktif dan izin lokasi diberikan.');
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0
-          }
-        );
+    function initDOM() {
+      [
+        'networkBadge', 'networkText', 'registerArea', 'formArea', 'adminPage', 'adminArea', 
+        'cameraArea', 'previewArea', 'rekapArea', 'rekapContent', 'statusBox',
+        'registerMessage', 'inputIdPegawai', 'pegawaiHeader', 'namaPegawaiDisplay', 'metaPegawaiDisplay',
+        'nama', 'idPegawai', 'jabatanPegawai', 'unitPegawai', 'detailAbsen',
+        'keterangan', 'btnAdminPage', 'headerMenuPanel', 'btnModeHadir', 'btnModeKeterangan', 'jamHariIni', 'tanggalHariIni',
+        'video', 'canvas', 'previewFoto', 'btnKirim', 'btnGps', 'btnUlangGps',
+        'gpsStatus', 'gpsLat', 'gpsLng', 'gpsAcc',
+        'adminTotal', 'adminHadir', 'adminDinas', 'adminTidakHadir', 'adminBelum', 'adminDetail', 'copyToast',
+        'absenDatangSummary', 'summaryDatangTitle', 'summaryDatangText',
+        'absenPulangSummary', 'summaryPulangBadge', 'summaryPulangTitle', 'summaryPulangText', 'summaryPulangSpirit',
+        'formAbsensiFields', 'labelDetailAbsen', 'labelKeterangan', 'btnMulaiAbsen'
+      ].forEach(function(id) {
+        DOM[id] = document.getElementById(id);
       });
     }
 
-    async function ambilGPSManual() {
-      tampilStatus('Mengambil lokasi GPS...', 'warning');
+    const UTIL = {
+      escapeHTML(teks) {
+        return String(teks || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      },
 
-      try {
-        lokasiTerakhir = await ambilGPS();
-        setGpsUI(lokasiTerakhir);
-        tampilStatus('✅ GPS berhasil diambil. Sekarang absensi bisa dikirim.', 'success');
-      } catch (err) {
-        lokasiTerakhir = null;
-        setGpsUI(null);
-        tampilStatus('❌ ' + err, 'error');
+      tanggalIndonesia(date = new Date()) {
+        return date.toLocaleDateString('id-ID', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+      },
+
+      jamIndonesia(date = new Date()) {
+        return date.toLocaleTimeString('id-ID', {
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
       }
-    }
+    };
 
-    async function kirimAbsensi() {
-      if (sedangKirim) return;
+    const STORAGE = {
+      key(nama) {
+        return CONFIG.STORAGE_PREFIX + nama;
+      },
 
-      if (WEB_APP_URL === 'PASTE_LINK_WEB_APP_APPS_SCRIPT_EXEC_DI_SINI') {
-        tampilStatus('❌ WEB_APP_URL belum diganti dengan link Web App Apps Script /exec.', 'error');
-        return;
-      }
+      todayKey() {
+        return new Date().toISOString().slice(0, 10);
+      },
 
-      if (!validasiForm()) return;
+      read(key, fallback = null) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch (err) {
+          return fallback;
+        }
+      },
 
-      if (!fotoBase64) {
-        tampilStatus('❌ Foto belum diambil.', 'error');
-        return;
-      }
+      write(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+      },
 
-      try {
-        sedangKirim = true;
-        btnKirim.disabled = true;
+      remove(key) {
+        localStorage.removeItem(key);
+      },
 
-        if (!lokasiTerakhir) {
-          tampilStatus('Mengambil lokasi GPS...', 'warning');
-          lokasiTerakhir = await ambilGPS();
-          setGpsUI(lokasiTerakhir);
+      pegawaiKey() {
+        return this.key('pegawai');
+      },
+
+      simpanPegawai(pegawai) {
+        this.write(this.pegawaiKey(), pegawai);
+      },
+
+      ambilPegawai() {
+        return this.read(this.pegawaiKey(), null);
+      },
+
+      absenHariIniKey(tanggal = this.todayKey()) {
+        return this.key('absen_hari_ini_' + tanggal);
+      },
+
+      ambilAbsensiHariIni() {
+        return this.read(this.absenHariIniKey(), {});
+      },
+
+      simpanAbsensiHariIni(data) {
+        const lama = this.ambilAbsensiHariIni();
+
+        // Datang selalu memulai pasangan absensi baru.
+        // Ini mencegah data Pulang lama ikut terbaca lalu menampilkan ringkasan Pulang sesaat.
+        if (data.statusAbsen === 'Datang') {
+          this.write(this.absenHariIniKey(), { datang: data });
+          return;
         }
 
-        const data = {
-          nama: document.getElementById('nama').value.trim(),
-          statusAbsen: document.getElementById('statusAbsen').value,
-          keterangan: document.getElementById('keterangan').value.trim(),
-          fotoBase64: fotoBase64,
-          latitude: lokasiTerakhir.latitude,
-          longitude: lokasiTerakhir.longitude,
-          accuracy: lokasiTerakhir.accuracy,
-          userAgent: navigator.userAgent,
-          timestampClient: new Date().toISOString()
-        };
+        if (data.statusAbsen === 'Pulang') {
+          lama.pulang = data;
+          this.write(this.absenHariIniKey(), lama);
+        }
+      },
 
-        tampilStatus('Mengirim absensi ke server...', 'warning');
+      resetAbsensiHariIni() {
+        this.remove(this.absenHariIniKey());
+      },
 
-        const response = await fetch(WEB_APP_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
-          },
-          body: JSON.stringify(data)
+      riwayatKey() {
+        return this.key('riwayat_absensi');
+      },
+
+      ambilRiwayat() {
+        return this.read(this.riwayatKey(), []);
+      },
+
+      simpanRiwayat(list) {
+        this.write(this.riwayatKey(), list.slice(0, CONFIG.RIWAYAT_LIMIT));
+      },
+
+      tambahRiwayatLengkap(dataHariIni) {
+        if (!dataHariIni || !dataHariIni.datang || !dataHariIni.pulang) return;
+        const datang = new Date(dataHariIni.datang.timestampClient || Date.now());
+        const pulang = new Date(dataHariIni.pulang.timestampClient || Date.now());
+        const riwayat = this.ambilRiwayat();
+
+        riwayat.unshift({
+          tanggal: datang.toLocaleDateString('id-ID'),
+          datang: UTIL.jamIndonesia(datang),
+          pulang: UTIL.jamIndonesia(pulang),
+          durasi: ENGINE.formatDurasiKerja(pulang - datang),
+          dinas: dataHariIni.datang.detailAbsen || '-'
         });
 
-        // Pada mode no-cors, browser tidak bisa membaca isi response.
-        // Jika fetch tidak error, data dianggap sudah dikirim ke Apps Script.
-        tampilStatus(
-          '✅ Absensi telah dikirim.\n\n' +
-          'Status: ' + data.statusAbsen + '\n' +
-          'GPS: ' + data.latitude + ', ' + data.longitude,
-          'success'
+        this.simpanRiwayat(riwayat);
+      },
+
+      adminCacheKey() {
+        return this.key('admin_rekap_cache');
+      },
+
+      ambilCacheAdmin() {
+        const cache = this.read(this.adminCacheKey(), null);
+        if (!cache || !cache.waktu || !cache.data) return null;
+        if ((Date.now() - Number(cache.waktu || 0)) > CONFIG.CACHE_ADMIN_MS) return null;
+        return cache.data;
+      },
+
+      simpanCacheAdmin(data) {
+        this.write(this.adminCacheKey(), { waktu: Date.now(), data: data });
+      },
+
+      cleanupAbsensiLama(hari = CONFIG.CLEANUP_ABSEN_HARI) {
+        const batas = new Date();
+        batas.setDate(batas.getDate() - hari);
+        const batasKey = batas.toISOString().slice(0, 10);
+        const prefix = CONFIG.STORAGE_PREFIX + 'absen_hari_ini_';
+        Object.keys(localStorage).forEach(function(key) {
+          if (!key.startsWith(prefix)) return;
+          const tanggal = key.replace(prefix, '');
+          if (tanggal < batasKey) localStorage.removeItem(key);
+        });
+      },
+
+      resetPerangkatLokal() {
+        Object.keys(localStorage).forEach(function(key) {
+          if (key.startsWith(CONFIG.STORAGE_PREFIX)) localStorage.removeItem(key);
+        });
+      }
+    };
+
+    const API = {
+      buildURL(params) {
+        const url = new URL(CONFIG.WEB_APP_URL);
+        Object.keys(params || {}).forEach(function(key) {
+          if (params[key] !== undefined && params[key] !== null) url.searchParams.set(key, params[key]);
+        });
+        return url.toString();
+      },
+
+      async get(params) {
+        const res = await fetch(this.buildURL(params), { method: 'GET', cache: 'no-store' });
+        if (!res.ok) throw new Error('Server tidak merespons dengan baik. Kode: ' + res.status);
+        return res.json();
+      },
+
+      async post(data) {
+        const res = await fetch(CONFIG.WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('Gagal mengirim data. Kode: ' + res.status);
+        return res.json();
+      },
+
+      cekPegawai(idPegawai) {
+        return this.get({ aksi: 'cekNIK', nik: idPegawai });
+      },
+
+      cekRiwayatTerakhir(idPegawai) {
+        return this.get({ aksi: 'cekRiwayatTerakhir', idPegawai: idPegawai });
+      },
+
+      rekapAdminHariIni() {
+        return this.get({ aksi: 'rekapHariIni' });
+      },
+
+      riwayatPegawai(idPegawai) {
+        return this.get({ aksi: 'riwayatPegawai', idPegawai: idPegawai });
+      },
+
+      kirimAbsensi(data) {
+        return this.post(data);
+      }
+    };
+
+    const ENGINE = {
+      jamKeMenit(jamText) {
+        const bagian = String(jamText || '00:00').split(':').map(Number);
+        return ((bagian[0] || 0) * 60) + (bagian[1] || 0);
+      },
+
+      menitSekarang() {
+        const now = new Date();
+        return (now.getHours() * 60) + now.getMinutes();
+      },
+
+      isTesterMode() {
+        const idAktif = String(STATE.pegawaiAktif?.idPegawai || STATE.pegawaiAktif?.nik || '').trim();
+        return CONFIG.MODE_UJI_COBA && idAktif === CONFIG.TESTER_ID;
+      },
+
+      dalamRentangJam(jadwal, menitNow = this.menitSekarang()) {
+        const mulai = this.jamKeMenit(jadwal.mulai);
+        const selesai = this.jamKeMenit(jadwal.selesai);
+        return menitNow >= mulai && menitNow <= selesai;
+      },
+
+      pilihanDetail(menu) {
+        if (menu === 'Keterangan') {
+          if (this.isTesterMode()) {
+            return CONFIG.JADWAL_DINAS.Keterangan.map(function(j) { return j.nama; });
+          }
+
+          const menitNow = this.menitSekarang();
+          const pilihan = CONFIG.JADWAL_DINAS.Keterangan
+            .filter((j) => !j.batas || menitNow <= this.jamKeMenit(j.batas))
+            .map(function(j) { return j.nama; });
+
+          if (!pilihan.length) {
+            return ['Keterangan ditutup setelah pukul 08.00'];
+          }
+
+          return pilihan;
+        }
+
+        if (this.isTesterMode()) {
+          const semua = CONFIG.JADWAL_DINAS[menu].map(function(j) { return j.nama; });
+          if (!semua.includes('Dinas Luar')) semua.push('Dinas Luar');
+          return semua;
+        }
+
+        const aktif = CONFIG.JADWAL_DINAS[menu]
+          .filter((j) => this.dalamRentangJam(j))
+          .map(function(j) { return j.nama; });
+
+        if (!aktif.includes('Dinas Luar')) aktif.push('Dinas Luar');
+        return aktif;
+      },
+
+      formatDurasiKerja(ms) {
+        if (!ms || ms < 0) return '-';
+        const totalMenit = Math.floor(ms / 60000);
+        const jam = Math.floor(totalMenit / 60);
+        const menit = totalMenit % 60;
+        return jam + ' jam ' + menit + ' menit';
+      },
+
+      formatJamTampilan(nilai) {
+        if (!nilai) return '-';
+        const teks = String(nilai).trim();
+        const pola = teks.match(/([0-9]{1,2}):([0-9]{2})(?::([0-9]{2}))?/);
+        if (pola) return String(pola[1]).padStart(2, '0') + ':' + pola[2] + ':' + (pola[3] || '00');
+        return teks;
+      },
+
+      statusBerikutnya() {
+        const terakhir = STATE.terakhirServer;
+
+        // Sumber utama adalah riwayat terakhir dari server.
+        // Jika terakhir Datang, tombol berikutnya harus Pulang.
+        // Jika terakhir Pulang, tombol berikutnya harus Datang.
+        if (terakhir && terakhir.statusAbsen === 'Datang') return 'Pulang';
+        if (terakhir && terakhir.statusAbsen === 'Pulang') return 'Datang';
+
+        // Fallback hanya dipakai saat server belum tersedia.
+        const lokal = STORAGE.ambilAbsensiHariIni();
+        if (lokal.datang && !lokal.pulang) return 'Pulang';
+        return 'Datang';
+      },
+
+      isTanggalHariIni(tanggal) {
+        if (!tanggal) return false;
+        const hariIni = STORAGE.todayKey();
+        const teks = String(tanggal).trim();
+        return teks === hariIni || teks.slice(0, 10) === hariIni;
+      },
+
+      setMode(menu) {
+        STATE.menuAbsenAktif = menu;
+        UI.updateModeAbsensi();
+      },
+
+      buatDataAbsensi(statusAbsen) {
+        const pegawai = STATE.pegawaiAktif || {};
+        const lokasi = STATE.lokasiTerakhir || {};
+        const hariIni = STORAGE.ambilAbsensiHariIni();
+        const datangHariIni = hariIni.datang || {};
+        const detailOtomatis = statusAbsen === 'Pulang'
+          ? (datangHariIni.detailAbsen || DOM.detailAbsen?.value || '')
+          : (DOM.detailAbsen ? DOM.detailAbsen.value : '');
+
+        const keteranganOtomatis = DOM.keterangan ? DOM.keterangan.value.trim() : '';
+
+        return {
+          idPegawai: pegawai.idPegawai || pegawai.nik || '',
+          nik: pegawai.idPegawai || pegawai.nik || '',
+          nama: pegawai.nama || '',
+          jabatan: pegawai.jabatan || '',
+          unit: pegawai.unit || '',
+          statusAbsen: statusAbsen,
+          detailAbsen: detailOtomatis,
+          keterangan: keteranganOtomatis,
+          latitude: lokasi.latitude || '',
+          longitude: lokasi.longitude || '',
+          accuracy: lokasi.accuracy || '',
+          fotoBase64: STATE.fotoBase64 || '',
+          timestampClient: new Date(Date.now() + (8 * 60 * 60 * 1000)).toISOString()
+        };
+      },
+
+      validasiSebelumKirim(data) {
+        if (!data.idPegawai) return 'ID Pegawai belum tersedia.';
+        if (!data.statusAbsen) return 'Status absen belum tersedia.';
+        if (!data.detailAbsen) return 'Jenis dinas/kegiatan wajib dipilih.';
+
+        if (!this.isTesterMode() && data.detailAbsen === 'Keterangan ditutup setelah pukul 08.00') {
+          return 'Pengisian keterangan hanya dapat dilakukan sampai pukul 08.00.';
+        }
+
+        // Pembatasan hanya untuk absensi datang.
+        // Mode uji coba tidak dibatasi jam agar mudah mengetes semua menu.
+        if (!this.isTesterMode() && data.statusAbsen === 'Datang') {
+          const jadwal = CONFIG.JADWAL_DINAS.Datang.find((j) => j.nama === data.detailAbsen);
+          if (jadwal && !this.dalamRentangJam(jadwal)) {
+            return 'Absensi datang untuk ' + data.detailAbsen + ' belum dibuka atau sudah lewat.';
+          }
+        }
+        if (!data.fotoBase64) return 'Foto wajib diambil sebelum mengirim absensi.';
+        if (!data.latitude || !data.longitude) return 'Lokasi GPS wajib diambil sebelum mengirim absensi.';
+        return '';
+      },
+
+      dataServerKeDataLokal(row) {
+        if (!row) return null;
+        return {
+          idPegawai: row.idPegawai || row.nik || STATE.pegawaiAktif?.idPegawai || STATE.pegawaiAktif?.nik || '',
+          nama: row.nama || STATE.pegawaiAktif?.nama || '',
+          jabatan: row.jabatan || STATE.pegawaiAktif?.jabatan || '',
+          unit: row.unit || STATE.pegawaiAktif?.unit || '',
+          statusAbsen: row.statusAbsen || row.status || '',
+          detailAbsen: row.detailAbsen || row.detail || '',
+          keterangan: row.keterangan || '',
+          latitude: row.latitude || '',
+          longitude: row.longitude || '',
+          accuracy: row.accuracy || '',
+          timestampClient: row.timestampClient || row.timestampServer || new Date().toISOString()
+        };
+      },
+
+      kelompokkanRiwayatPasangan(riwayat) {
+        const hasil = [];
+        for (let i = 0; i < riwayat.length; i++) {
+          const item = riwayat[i] || {};
+          const status = String(item.statusAbsen || '').trim();
+          if (status === 'Pulang') {
+            let datang = null;
+            for (let j = i + 1; j < riwayat.length; j++) {
+              const kandidat = riwayat[j] || {};
+              if (String(kandidat.statusAbsen || '').trim() === 'Datang') {
+                datang = kandidat;
+                break;
+              }
+            }
+            if (datang) hasil.push({ datang: datang, pulang: item });
+          }
+          if (status === 'Datang') {
+            const sudahDipakai = hasil.some(function(p) { return p.datang === item; });
+            if (!sudahDipakai) hasil.push({ datang: item, pulang: null });
+          }
+        }
+        return hasil;
+      },
+
+      hitungDurasiJam(datang, pulang) {
+        try {
+          if (!datang || !pulang) return '-';
+          const jamDatang = this.formatJamTampilan(datang.jam).split(':').map(Number);
+          const jamPulang = this.formatJamTampilan(pulang.jam).split(':').map(Number);
+          const menitDatang = (jamDatang[0] * 60) + jamDatang[1];
+          const menitPulang = (jamPulang[0] * 60) + jamPulang[1];
+          let selisih = menitPulang - menitDatang;
+          if (selisih < 0) selisih += 24 * 60;
+          return Math.floor(selisih / 60) + ' jam ' + (selisih % 60) + ' menit';
+        } catch (err) {
+          return '-';
+        }
+      },
+
+      pesanKeterangan(detail) {
+        const pesan = {
+          Libur: 'Selamat Berlibur',
+          Sakit: 'Jangan lupa lampirkan Surat Keterangan Istirahat, Semoga Lekas Sembuh',
+          'Dinas Sore': 'Silahkan kembali isi Absensi Kehadiran saat mulai bertugas (Sore 13.45)',
+          'Dinas Malam': 'Silahkan kembali isi Absensi Kehadiran saat mulai bertugas (Malam 19.45)',
+          'Dinas Luar': 'Silahkan kembali isi Absensi Kehadiran saat mulai bertugas'
+        };
+        return pesan[detail] || 'Keterangan tercatat.';
+      },
+
+      teksRingkasanDatang(datang) {
+        const waktu = new Date(datang.timestampClient || Date.now());
+        return [
+          'Tanggal: ' + UTIL.tanggalIndonesia(waktu),
+          'Pukul: ' + UTIL.jamIndonesia(waktu),
+          'Koordinat: ' + (datang.latitude || '-') + ', ' + (datang.longitude || '-'),
+          'Keterangan: ' + (datang.keterangan || '')
+        ].join('\n');
+      },
+
+      teksRingkasanPulang(datang, pulang) {
+        const waktuDatang = new Date(datang.timestampClient || Date.now());
+        const waktuPulang = new Date(pulang.timestampClient || Date.now());
+        return [
+          'Tanggal: ' + UTIL.tanggalIndonesia(waktuPulang),
+          'Datang: ' + UTIL.jamIndonesia(waktuDatang),
+          'Pulang: ' + UTIL.jamIndonesia(waktuPulang),
+          'Lama kerja: ' + this.formatDurasiKerja(waktuPulang - waktuDatang),
+          'Jenis dinas: ' + (pulang.detailAbsen || datang.detailAbsen || '-'),
+          'Koordinat pulang: ' + (pulang.latitude || '-') + ', ' + (pulang.longitude || '-'),
+          'Keterangan: ' + (pulang.keterangan || datang.keterangan || '')
+        ].join('\n');
+      },
+
+      teksRingkasanKeterangan(data) {
+        return [
+          'Tanggal: ' + UTIL.tanggalIndonesia(new Date()),
+          'Pukul: ' + UTIL.jamIndonesia(new Date()),
+          'Keterangan: ' + (data.keterangan || '')
+        ].join('\n');
+      }
+    };
+
+    const MEDIA = {
+      async bukaKamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Kamera tidak dapat dibuka. Gunakan Chrome di HP dan izinkan akses kamera.');
+        }
+
+        this.tutupKamera();
+        STATE.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false
+        });
+
+        DOM.video.srcObject = STATE.stream;
+        await DOM.video.play();
+      },
+
+      tutupKamera() {
+        if (STATE.stream) {
+          STATE.stream.getTracks().forEach(function(track) { track.stop(); });
+          STATE.stream = null;
+        }
+        if (DOM.video) DOM.video.srcObject = null;
+      },
+
+      ambilFoto() {
+        if (!DOM.video || !DOM.canvas) throw new Error('Elemen kamera belum siap.');
+
+        const videoWidth = DOM.video.videoWidth || 640;
+        const videoHeight = DOM.video.videoHeight || 480;
+        const outputSize = Math.min(CONFIG.FOTO_MAX_WIDTH, 280);
+
+        // Crop persegi dengan fokus sedikit ke atas agar lebih dominan wajah,
+        // bukan terlalu banyak latar belakang badan/ruangan.
+        const cropSize = Math.min(videoWidth, videoHeight);
+        const cropX = Math.max(0, Math.round((videoWidth - cropSize) / 2));
+        const cropYDasar = Math.round((videoHeight - cropSize) / 2);
+        const cropY = Math.max(0, cropYDasar - Math.round(videoHeight * 0.10));
+        const cropYFinal = Math.min(cropY, Math.max(0, videoHeight - cropSize));
+
+        DOM.canvas.width = outputSize;
+        DOM.canvas.height = outputSize;
+
+        const ctx = DOM.canvas.getContext('2d');
+        ctx.drawImage(
+          DOM.video,
+          cropX,
+          cropYFinal,
+          cropSize,
+          cropSize,
+          0,
+          0,
+          outputSize,
+          outputSize
         );
 
-        fotoBase64 = null;
-        lokasiTerakhir = null;
-        setGpsUI(null);
-        document.getElementById('previewArea').classList.add('hidden');
-        document.getElementById('formArea').classList.remove('hidden');
-        document.getElementById('statusAbsen').value = '';
-        document.getElementById('keterangan').value = '';
-      } catch (err) {
-        tampilStatus('❌ Gagal mengirim absensi.\nPeriksa koneksi internet atau link Web App.', 'error');
-      } finally {
-        sedangKirim = false;
-        btnKirim.disabled = false;
+        STATE.fotoBase64 = DOM.canvas.toDataURL('image/jpeg', CONFIG.FOTO_QUALITY);
+        if (DOM.previewFoto) DOM.previewFoto.src = STATE.fotoBase64;
+        this.tutupKamera();
+      },
+
+      ambilGPS() {
+        return new Promise(function(resolve, reject) {
+          if (!navigator.geolocation) {
+            reject(new Error('Lokasi tidak dapat digunakan di browser ini.'));
+            return;
+          }
+
+          navigator.geolocation.getCurrentPosition(function(pos) {
+            resolve({
+              latitude: Number(pos.coords.latitude || 0).toFixed(6).replace('.', ','),
+              longitude: Number(pos.coords.longitude || 0).toFixed(6).replace('.', ','),
+              accuracy: String(Math.round(pos.coords.accuracy || 0))
+            });
+          }, function(err) {
+            let pesan = 'Gagal mengambil lokasi.';
+            if (err.code === 1) pesan = 'Izin lokasi ditolak. Aktifkan izin lokasi untuk aplikasi ini.';
+            if (err.code === 2) pesan = 'Lokasi tidak tersedia. Pastikan GPS HP aktif.';
+            if (err.code === 3) pesan = 'Pengambilan lokasi terlalu lama. Coba ulangi.';
+            reject(new Error(pesan));
+          }, {
+            enableHighAccuracy: true,
+            timeout: CONFIG.GPS_TIMEOUT_MS,
+            maximumAge: CONFIG.GPS_MAX_AGE_MS
+          });
+        });
       }
+    };
+
+    const UI = {
+      show(el) { if (el) el.classList.remove('hidden'); },
+      hide(el) { if (el) el.classList.add('hidden'); },
+
+      setStatus(pesan, tipe = '') {
+        if (!DOM.statusBox) return;
+        DOM.statusBox.className = 'status ' + tipe;
+        DOM.statusBox.textContent = pesan;
+        DOM.statusBox.classList.remove('hidden');
+      },
+
+      clearStatus() { if (DOM.statusBox) DOM.statusBox.classList.add('hidden'); },
+
+      updateNetworkStatus() {
+        const online = navigator.onLine !== false;
+        if (DOM.networkBadge) {
+          DOM.networkBadge.classList.toggle('online', online);
+          DOM.networkBadge.classList.toggle('offline', !online);
+        }
+        if (DOM.networkText) DOM.networkText.textContent = online ? 'Online' : 'Offline';
+      },
+
+      setRegisterMessage(pesan, tipe) {
+        if (!DOM.registerMessage) return;
+        DOM.registerMessage.className = 'status ' + tipe;
+        DOM.registerMessage.textContent = pesan;
+        DOM.registerMessage.classList.remove('hidden');
+      },
+
+      updateJamTanggal() {
+        const now = new Date();
+        const tanggal = UTIL.tanggalIndonesia(now);
+        const jam = UTIL.jamIndonesia(now);
+        document.querySelectorAll('.currentDateText').forEach(function(el) { el.textContent = tanggal; });
+        document.querySelectorAll('.currentClockText').forEach(function(el) { el.textContent = jam; });
+        if (DOM.jamHariIni) DOM.jamHariIni.textContent = jam;
+        if (DOM.tanggalHariIni) DOM.tanggalHariIni.textContent = tanggal;
+
+        const menitAktif = now.getHours() * 60 + now.getMinutes();
+        if (STATE.menitDropdownTerakhir !== menitAktif && DOM.formArea && !DOM.formArea.classList.contains('hidden')) {
+          STATE.menitDropdownTerakhir = menitAktif;
+          this.isiPilihanDetail(true);
+        }
+      },
+
+      tampilkanRegistrasi() {
+        this.show(DOM.registerArea);
+        this.hide(DOM.formArea);
+        this.hide(DOM.pegawaiHeader);
+        this.hide(DOM.adminPage);
+        this.hide(DOM.cameraArea);
+        this.hide(DOM.previewArea);
+      },
+
+      tampilkanFormAbsensi() {
+        this.hide(DOM.registerArea);
+        this.show(DOM.formArea);
+        this.hide(DOM.adminPage);
+        this.hide(DOM.cameraArea);
+        this.hide(DOM.previewArea);
+        MEDIA.tutupKamera();
+
+        const p = STATE.pegawaiAktif || {};
+        if (DOM.nama) DOM.nama.value = p.nama || '';
+        if (DOM.idPegawai) DOM.idPegawai.value = p.idPegawai || p.nik || '';
+        if (DOM.jabatanPegawai) DOM.jabatanPegawai.value = p.jabatan || '';
+        if (DOM.unitPegawai) DOM.unitPegawai.value = p.unit || '';
+        if (DOM.namaPegawaiDisplay) {
+          const nama = p.nama || 'NAMA PEGAWAI';
+          const jabatan = p.jabatan || 'Pegawai';
+          DOM.namaPegawaiDisplay.innerHTML = '<span class="pegawai-name-main">' + UTIL.escapeHTML(nama) + '</span><span class="pegawai-name-sub">' + UTIL.escapeHTML(jabatan) + '</span>';
+        }
+        this.show(DOM.pegawaiHeader);
+
+        this.updateAdminAccess();
+        this.updateModeAbsensi();
+        this.renderStatusHariIni();
+      },
+
+      updateAdminAccess() {
+        const idAktif = String(STATE.pegawaiAktif?.idPegawai || STATE.pegawaiAktif?.nik || '').trim();
+        const testerMode = CONFIG.MODE_UJI_COBA && idAktif === CONFIG.TESTER_ID;
+        const bolehAdmin = testerMode || CONFIG.ADMIN_IDS.includes(idAktif);
+        if (bolehAdmin) {
+          this.show(DOM.btnAdminPage);
+          this.show(DOM.adminArea);
+        } else {
+          this.hide(DOM.btnAdminPage);
+          this.hide(DOM.adminArea);
+        }
+      },
+
+      updateModeAbsensi() {
+        if (DOM.btnModeHadir) DOM.btnModeHadir.classList.toggle('active', STATE.menuAbsenAktif !== 'Keterangan');
+        if (DOM.btnModeKeterangan) DOM.btnModeKeterangan.classList.toggle('active', STATE.menuAbsenAktif === 'Keterangan');
+        if (DOM.labelDetailAbsen) DOM.labelDetailAbsen.textContent = STATE.menuAbsenAktif === 'Keterangan'
+          ? 'Status Absensi'
+          : 'Jenis Dinas / Kegiatan';
+        if (DOM.labelKeterangan) {
+          DOM.labelKeterangan.textContent = STATE.menuAbsenAktif === 'Keterangan'
+            ? 'Keterangan'
+            : 'Keterangan / Lokasi Kegiatan';
+        }
+        if (DOM.btnMulaiAbsen) {
+          DOM.btnMulaiAbsen.textContent = STATE.menuAbsenAktif === 'Keterangan'
+            ? 'Kirim Keterangan'
+            : (STATE.menuAbsenAktif === 'Pulang' ? 'Ambil Foto Pulang' : 'Ambil Foto');
+        }
+
+        if (DOM.keterangan) {
+          if (STATE.menuAbsenAktif === 'Keterangan') {
+            DOM.keterangan.placeholder = 'Contoh: Sesuai jadwal, Libur P3K, Izin keluarga';
+          } else if (STATE.menuAbsenAktif === 'Pulang') {
+            DOM.keterangan.placeholder = 'Contoh: Pulang sesuai jadwal';
+          } else {
+            DOM.keterangan.placeholder = 'Contoh: UGD, Rawat Inap, Poliklinik Umum';
+          }
+        }
+
+        this.isiPilihanDetail(true);
+        this.updateTombolMulaiAbsen();
+      },
+
+      isiPilihanDetail(pertahankanNilai) {
+        if (!DOM.detailAbsen) return;
+        const nilaiLama = DOM.detailAbsen.value;
+        const pilihan = ENGINE.pilihanDetail(STATE.menuAbsenAktif);
+        DOM.detailAbsen.innerHTML = pilihan.map(function(nama) {
+          return '<option value="' + UTIL.escapeHTML(nama) + '">' + UTIL.escapeHTML(nama) + '</option>';
+        }).join('\n');
+        if (pertahankanNilai && pilihan.includes(nilaiLama)) DOM.detailAbsen.value = nilaiLama;
+      },
+
+      updateTombolMulaiAbsen() {
+        if (!DOM.btnMulaiAbsen) return;
+        if (STATE.menuAbsenAktif === 'Pulang') {
+          const isi = DOM.keterangan ? DOM.keterangan.value.trim() : '';
+          DOM.btnMulaiAbsen.disabled = !isi;
+          return;
+        }
+        DOM.btnMulaiAbsen.disabled = false;
+      },
+
+      renderStatusHariIni() {
+        const data = STORAGE.ambilAbsensiHariIni();
+        this.hide(DOM.absenDatangSummary);
+        this.hide(DOM.absenPulangSummary);
+        this.show(DOM.formAbsensiFields);
+
+        if (!data.datang && !data.pulang) {
+          STATE.menuAbsenAktif = 'Datang';
+          this.updateModeAbsensi();
+          return;
+        }
+
+        if (data.datang && !data.pulang) {
+          this.tampilkanRingkasanDatang(data.datang);
+          STATE.menuAbsenAktif = 'Pulang';
+          this.updateModeAbsensi();
+          return;
+        }
+
+        if (data.datang && data.pulang) {
+          this.tampilkanRingkasanPulang(data.datang, data.pulang);
+          STATE.menuAbsenAktif = 'Datang';
+          this.updateModeAbsensi();
+        }
+      },
+
+      tampilkanRingkasanDatang(datang) {
+        if (!datang) return;
+        if (DOM.summaryDatangTitle) DOM.summaryDatangTitle.textContent = datang.detailAbsen || 'Dinas';
+        if (DOM.summaryDatangText) DOM.summaryDatangText.textContent = ENGINE.teksRingkasanDatang(datang);
+        this.show(DOM.absenDatangSummary);
+        this.hide(DOM.absenPulangSummary);
+        this.hide(DOM.formAbsensiFields);
+      },
+
+      tampilkanRingkasanPulang(datang, pulang) {
+        if (!datang || !pulang) return;
+        if (DOM.summaryPulangBadge) DOM.summaryPulangBadge.textContent = 'ABSEN PULANG TERCATAT';
+        if (DOM.summaryPulangTitle) DOM.summaryPulangTitle.textContent = pulang.detailAbsen || datang.detailAbsen || 'Dinas';
+        if (DOM.summaryPulangText) DOM.summaryPulangText.textContent = ENGINE.teksRingkasanPulang(datang, pulang);
+        if (DOM.summaryPulangSpirit) DOM.summaryPulangSpirit.textContent = 'Terima kasih atas pelayanan hari ini. Semoga sehat selalu.';
+        this.hide(DOM.absenDatangSummary);
+        this.show(DOM.absenPulangSummary);
+        this.hide(DOM.formAbsensiFields);
+      },
+
+      tampilkanRingkasanKeterangan(data) {
+        const detail = data.detailAbsen || 'Keterangan';
+        if (DOM.summaryPulangBadge) DOM.summaryPulangBadge.textContent = 'KETERANGAN TERCATAT';
+        if (DOM.summaryPulangTitle) DOM.summaryPulangTitle.textContent = detail;
+        if (DOM.summaryPulangText) DOM.summaryPulangText.textContent = ENGINE.teksRingkasanKeterangan(data);
+        if (DOM.summaryPulangSpirit) DOM.summaryPulangSpirit.textContent = ENGINE.pesanKeterangan(detail);
+        this.hide(DOM.absenDatangSummary);
+        this.show(DOM.absenPulangSummary);
+        this.hide(DOM.formAbsensiFields);
+      },
+
+      tampilkanKamera() {
+        this.hide(DOM.formArea);
+        this.hide(DOM.previewArea);
+        this.show(DOM.cameraArea);
+        this.clearStatus();
+      },
+
+      tampilkanPreview() {
+        this.hide(DOM.cameraArea);
+        this.hide(DOM.formArea);
+        
+        this.show(DOM.previewArea);
+        this.resetGpsView();
+      },
+
+      resetGpsView() {
+        STATE.lokasiTerakhir = null;
+        if (DOM.gpsStatus) DOM.gpsStatus.textContent = 'Belum diambil';
+        if (DOM.gpsLat) DOM.gpsLat.textContent = '-';
+        if (DOM.gpsLng) DOM.gpsLng.textContent = '-';
+        if (DOM.gpsAcc) DOM.gpsAcc.textContent = '-';
+        this.hide(DOM.btnKirim);
+        this.hide(DOM.btnUlangGps);
+        this.show(DOM.btnGps);
+      },
+
+      tampilkanGps(lokasi) {
+        if (DOM.gpsStatus) DOM.gpsStatus.textContent = 'Berhasil';
+        if (DOM.gpsLat) DOM.gpsLat.textContent = lokasi.latitude;
+        if (DOM.gpsLng) DOM.gpsLng.textContent = lokasi.longitude;
+        if (DOM.gpsAcc) DOM.gpsAcc.textContent = lokasi.accuracy + ' m';
+        this.show(DOM.btnKirim);
+        this.show(DOM.btnUlangGps);
+        this.hide(DOM.btnGps);
+      },
+
+      tampilkanAdmin() {
+        this.hide(DOM.formArea);
+        this.show(DOM.adminPage);
+        this.renderAdminRekap(STATE.adminRekap);
+      },
+
+      kembaliKeAbsensi() {
+        this.show(DOM.formArea);
+        this.hide(DOM.adminPage);
+        this.renderStatusHariIni();
+      },
+
+      renderAdminRekap(data) {
+        const d = data || { total: [], hadir: [], dinas: [], libur: [], belum: [] };
+        if (DOM.adminTotal) DOM.adminTotal.textContent = d.total.length;
+        if (DOM.adminHadir) DOM.adminHadir.textContent = d.hadir.length;
+        if (DOM.adminDinas) DOM.adminDinas.textContent = d.dinas.length;
+        if (DOM.adminTidakHadir) DOM.adminTidakHadir.textContent = d.libur.length;
+        if (DOM.adminBelum) DOM.adminBelum.textContent = d.belum.length;
+      },
+
+      renderAdminDetail(jenis) {
+        if (!DOM.adminDetail) return;
+
+        const data = STATE.adminRekap || {};
+        let list = Array.isArray(data[jenis]) ? data[jenis].slice() : [];
+
+        const judulMap = {
+          total: 'Total Pegawai',
+          hadir: 'Dinas Pagi',
+          dinas: 'Dinas Lain',
+          libur: 'Tidak Hadir',
+          belum: 'Belum Lapor'
+        };
+
+        if (jenis === 'hadir') {
+          list.sort(function(a, b) {
+            const jamA = ENGINE.formatJamTampilan(typeof a === 'string' ? '' : a.ket || '');
+            const jamB = ENGINE.formatJamTampilan(typeof b === 'string' ? '' : b.ket || '');
+            return ENGINE.jamKeMenit(jamA) - ENGINE.jamKeMenit(jamB);
+          });
+        }
+
+        const isi = list.length ? list.map(function(item, i) {
+          if (typeof item === 'string') return (i + 1) + '. ' + UTIL.escapeHTML(item);
+
+          const nama = UTIL.escapeHTML(item.nama || '-');
+          const ket = item.ket ? ENGINE.formatJamTampilan(item.ket) : '';
+
+          if (jenis === 'hadir') {
+            return (i + 1) + '. ' + nama + (ket ? ' - ' + UTIL.escapeHTML(ket) : '');
+          }
+
+          return (i + 1) + '. ' + nama + (item.ket ? ' - ' + UTIL.escapeHTML(item.ket) : '');
+        }).join('<br>') : 'Tidak ada data.';
+
+        DOM.adminDetail.innerHTML = '<div class="admin-mini-title">' + (judulMap[jenis] || 'Detail') + '</div>' + isi;
+        DOM.adminDetail.classList.remove('hidden');
+      },
+
+      renderRiwayatServer(riwayat) {
+        if (!DOM.rekapArea || !DOM.rekapContent) return;
+        if (!riwayat || !riwayat.length) {
+          DOM.rekapContent.className = 'status';
+          DOM.rekapContent.textContent = 'Belum ada riwayat absensi.';
+          this.show(DOM.rekapArea);
+          return;
+        }
+        const pasangan = ENGINE.kelompokkanRiwayatPasangan(riwayat);
+        if (!pasangan.length) {
+          DOM.rekapContent.className = 'status';
+          DOM.rekapContent.textContent = 'Belum ada pasangan absensi datang/pulang.';
+          this.show(DOM.rekapArea);
+          return;
+        }
+        DOM.rekapContent.className = 'riwayat-list';
+        DOM.rekapContent.innerHTML = pasangan.slice(0, 10).map(function(item) {
+          const datang = item.datang || {};
+          const pulang = item.pulang || {};
+          const tanggal = datang.tanggal || '-';
+          const dinas = datang.detailAbsen || '-';
+          const jamDatang = ENGINE.formatJamTampilan(datang.jam);
+          const jamPulang = pulang.jam ? ENGINE.formatJamTampilan(pulang.jam) : '-';
+          const durasi = pulang.jam ? ENGINE.hitungDurasiJam(datang, pulang) : 'Belum absen pulang';
+          const isi = ['Datang : ' + tanggal + ' ' + jamDatang, 'Pulang : ' + (pulang.tanggal || tanggal) + ' ' + jamPulang, 'Jam kerja : ' + durasi].join('\n');
+          return '<div class="riwayat-card"><span class="badge">' + UTIL.escapeHTML(tanggal) + '</span><div class="title">' + UTIL.escapeHTML(dinas) + '</div><div class="text">' + UTIL.escapeHTML(isi) + '</div></div>';
+        }).join('\n');
+        this.show(DOM.rekapArea);
+        DOM.rekapArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+
+      renderRiwayatLokal() {
+        const riwayat = STORAGE.ambilRiwayat();
+        if (!DOM.rekapArea || !DOM.rekapContent) return;
+        if (!riwayat.length) {
+          DOM.rekapContent.className = 'status';
+          DOM.rekapContent.textContent = 'Belum ada riwayat absensi lokal.';
+          this.show(DOM.rekapArea);
+          return;
+        }
+        DOM.rekapContent.className = 'riwayat-list';
+        DOM.rekapContent.innerHTML = riwayat.slice(0, 7).map(function(item) {
+          const isi = ['Datang : ' + (item.tanggal || '-') + ' ' + (item.datang || '-'), 'Pulang : ' + (item.tanggal || '-') + ' ' + (item.pulang || '-'), 'Jam kerja : ' + (item.durasi || '-')].join('\n');
+          return '<div class="riwayat-card"><span class="badge">' + UTIL.escapeHTML(item.tanggal || '-') + '</span><div class="title">' + UTIL.escapeHTML(item.dinas || '-') + '</div><div class="text">' + UTIL.escapeHTML(isi) + '</div></div>';
+        }).join('\n');
+        this.show(DOM.rekapArea);
+        DOM.rekapArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    const APP = {
+      mulai() {
+        initDOM();
+        UI.updateJamTanggal();
+        UI.updateNetworkStatus();
+        setInterval(UI.updateJamTanggal, 1000);
+        STORAGE.cleanupAbsensiLama();
+        STATE.pegawaiAktif = STORAGE.ambilPegawai();
+        if (STATE.pegawaiAktif) {
+          UI.tampilkanFormAbsensi();
+          this.cekRiwayatTerakhir(false);
+          this.muatAdminDariCache();
+        } else {
+          UI.tampilkanRegistrasi();
+        }
+        this.bindEvents();
+      },
+
+      bindEvents() {
+        document.addEventListener('click', (e) => {
+          const target = e.target.closest('[data-action], [data-admin-chip]');
+          if (!target) return;
+          const chip = target.dataset.adminChip;
+          if (chip) {
+            this.lihatAdminDetail(chip, target);
+            return;
+          }
+          const action = target.dataset.action;
+          const actions = {
+            'toggle-header-menu': () => this.toggleHeaderMenu(),
+            'refresh-status': () => this.cekRiwayatTerakhir(true),
+            'open-history': () => this.bukaRiwayatPegawai(),
+            'close-history': () => UI.hide(DOM.rekapArea),
+            'open-admin': () => this.bukaAdmin(),
+            'back-attendance': () => UI.kembaliKeAbsensi(),
+            'refresh-admin': () => this.muatRekapAdminHariIni(true),
+            'copy-belum': () => this.salinBelumAbsen(),
+            'check-employee': () => this.cekPegawai(),
+            'mode-hadir': () => this.setModeHadir(),
+            'mode-keterangan': () => this.setModeKeterangan(),
+            'start-attendance': () => this.prosesAwalAbsensi(),
+            'start-checkout': () => this.mulaiAbsenPulangDariSummary(),
+            'finish-checkout': () => this.selesaikanHari(),
+            'capture-photo': () => this.ambilFoto(),
+            'close-camera': () => UI.tampilkanFormAbsensi(),
+            'retake-photo': () => this.ambilUlangFoto(),
+            'get-gps': () => this.ambilGPSManual(),
+            'send-attendance': () => this.kirimAbsensiAktif(),
+            'switch-user': () => this.gantiUser(),
+            'reset-device': () => this.resetPerangkat()
+          };
+          if (actions[action]) {
+            if (action !== 'toggle-header-menu') this.tutupHeaderMenu();
+            actions[action]();
+          }
+        });
+
+        if (DOM.keterangan) {
+          DOM.keterangan.addEventListener('input', () => UI.updateTombolMulaiAbsen());
+        }
+
+        window.addEventListener('online', () => UI.updateNetworkStatus());
+        window.addEventListener('offline', () => UI.updateNetworkStatus());
+      },
+
+      getIdPegawaiAktif() {
+        return String(STATE.pegawaiAktif?.idPegawai || STATE.pegawaiAktif?.nik || '').trim();
+      },
+
+      async cekPegawai() {
+        const id = String(DOM.inputIdPegawai?.value || '').trim();
+        if (!id) {
+          UI.setRegisterMessage('Masukkan ID Pegawai.', 'error');
+          return;
+        }
+        UI.setRegisterMessage('Memeriksa ID Pegawai...', 'warning');
+        try {
+          const res = await API.cekPegawai(id);
+          // MODE UJI COBA
+          if (CONFIG.MODE_UJI_COBA && id === CONFIG.TESTER_ID) {
+            STATE.pegawaiAktif = {
+              idPegawai: CONFIG.TESTER_ID,
+              nik: CONFIG.TESTER_ID,
+              nama: 'MODE UJI COBA',
+              jabatan: 'Tester'
+            };
+
+            STORAGE.simpanPegawai(STATE.pegawaiAktif);
+            UI.setRegisterMessage('Mode uji coba aktif.', 'success');
+            UI.tampilkanFormAbsensi();
+            return;
+          }
+
+          if (res && res.ditemukan) {
+            STATE.pegawaiAktif = {
+              idPegawai: res.idPegawai || res.ID_Pegawai || res.nik || id,
+              nik: res.idPegawai || res.ID_Pegawai || res.nik || id,
+              nama: res.nama || '',
+              jabatan: res.jabatan || '',
+              unit: res.unit || ''
+            };
+            STORAGE.simpanPegawai(STATE.pegawaiAktif);
+            UI.setRegisterMessage('Verifikasi berhasil. Selamat datang ' + STATE.pegawaiAktif.nama + '.', 'success');
+            UI.tampilkanFormAbsensi();
+            await this.cekRiwayatTerakhir(false);
+          } else {
+            UI.setRegisterMessage('ID Pegawai tidak ditemukan. Hubungi admin aplikasi.', 'error');
+          }
+        } catch (err) {
+          UI.setRegisterMessage('Gagal menghubungi server. Periksa koneksi internet.', 'error');
+        }
+      },
+
+      async cekRiwayatTerakhir(tampilkanPesan) {
+        const id = this.getIdPegawaiAktif();
+        if (!id) return;
+        if (tampilkanPesan) UI.setStatus('Memeriksa ulang status absensi...', 'warning');
+        try {
+          const res = await API.cekRiwayatTerakhir(id);
+          const row = res && res.terakhir ? res.terakhir : null;
+          STATE.terakhirServer = row;
+
+          // Jangan biarkan refresh server yang terlambat menimpa ringkasan
+          // dari absensi yang baru saja berhasil dikirim.
+          if (!STATE.baruSajaKirim) {
+            STORAGE.resetAbsensiHariIni();
+
+            if (row && ENGINE.isTanggalHariIni(row.tanggal)) {
+              const lokal = ENGINE.dataServerKeDataLokal(row);
+              if (lokal && lokal.statusAbsen === 'Datang') STORAGE.simpanAbsensiHariIni(lokal);
+              if (lokal && lokal.statusAbsen === 'Pulang') STORAGE.simpanAbsensiHariIni(lokal);
+            }
+
+            ENGINE.setMode(ENGINE.statusBerikutnya());
+            UI.renderStatusHariIni();
+          }
+          if (tampilkanPesan) UI.setStatus(this.teksStatusTerakhir(row), row ? 'success' : 'warning');
+        } catch (err) {
+          if (tampilkanPesan) UI.setStatus('Gagal memeriksa status: ' + err.message, 'error');
+        }
+      },
+
+      teksStatusTerakhir(row) {
+        if (!row) return 'Tidak ada riwayat absensi Datang/Pulang yang tercatat.';
+        return ['Riwayat terakhir ditemukan:', 'Status : ' + (row.statusAbsen || row.status || '-'), 'Dinas  : ' + (row.detailAbsen || row.detail || '-'), 'Tanggal: ' + (row.tanggal || '-'), 'Jam    : ' + ENGINE.formatJamTampilan(row.jam)].join('\n');
+      },
+
+      teksInfoDinas() {
+        return [
+          'Jadwal pilihan otomatis:',
+          'Datang Pagi: 07:15 - 12:00',
+          'Datang Sore: 13:45 - 18:00',
+          'Datang Malam: 19:45 - 23:00',
+          'Pulang Pagi: 11:30 - 18:00',
+          'Pulang Sore: 20:00 - 23:00',
+          'Pulang Malam: 08:00 - 10:00',
+          'Dinas Luar tetap tersedia.'
+        ].join('\n');
+      },
+
+      setModeHadir() {
+        ENGINE.setMode(ENGINE.statusBerikutnya());
+      },
+
+      setModeKeterangan() {
+        ENGINE.setMode('Keterangan');
+      },
+
+      async prosesAwalAbsensi() {
+        if (STATE.menuAbsenAktif === 'Keterangan') {
+          STATE.fotoBase64 = '';
+          STATE.lokasiTerakhir = { latitude: '', longitude: '', accuracy: '' };
+          await this.kirimAbsensiAktif();
+          return;
+        }
+
+        STATE.fotoBase64 = null;
+        STATE.lokasiTerakhir = null;
+        try {
+          UI.tampilkanKamera();
+          await MEDIA.bukaKamera();
+        } catch (err) {
+          UI.tampilkanFormAbsensi();
+          UI.setStatus(err.message, 'error');
+        }
+      },
+
+      async ambilFoto() {
+        try {
+          MEDIA.ambilFoto();
+          UI.tampilkanPreview();
+          await this.ambilGPSOtomatis();
+        } catch (err) {
+          UI.setStatus('Gagal mengambil foto: ' + err.message, 'error');
+        }
+      },
+
+      async ambilGPSOtomatis() {
+        try {
+          if (DOM.gpsStatus) DOM.gpsStatus.textContent = 'Mengambil lokasi...';
+          UI.hide(DOM.btnGps);
+          UI.hide(DOM.btnKirim);
+          UI.hide(DOM.btnUlangGps);
+
+          const lokasi = await MEDIA.ambilGPS();
+          STATE.lokasiTerakhir = lokasi;
+          UI.tampilkanGps(lokasi);
+          UI.clearStatus();
+        } catch (err) {
+          if (DOM.gpsStatus) DOM.gpsStatus.textContent = 'Gagal';
+          UI.show(DOM.btnGps);
+          UI.show(DOM.btnUlangGps);
+          UI.hide(DOM.btnKirim);
+          UI.setStatus(err.message + '\nSilakan tekan tombol Ambil Lokasi atau ikon ulang GPS.', 'error');
+        }
+      },
+
+      ambilUlangFoto() {
+        STATE.fotoBase64 = null;
+        STATE.lokasiTerakhir = null;
+        UI.resetGpsView();
+        this.prosesAwalAbsensi();
+      },
+
+      async ambilGPSManual() {
+        try {
+          if (DOM.gpsStatus) DOM.gpsStatus.textContent = 'Mengambil lokasi...';
+          UI.hide(DOM.btnGps);
+          UI.hide(DOM.btnKirim);
+          const lokasi = await MEDIA.ambilGPS();
+          STATE.lokasiTerakhir = lokasi;
+          UI.tampilkanGps(lokasi);
+        } catch (err) {
+          if (DOM.gpsStatus) DOM.gpsStatus.textContent = 'Gagal';
+          UI.show(DOM.btnUlangGps);
+          UI.setStatus(err.message, 'error');
+        }
+      },
+
+      mulaiAbsenPulangDariSummary() {
+        ENGINE.setMode('Pulang');
+        UI.hide(DOM.absenDatangSummary);
+        UI.hide(DOM.absenPulangSummary);
+        UI.show(DOM.formAbsensiFields);
+        if (DOM.keterangan) {
+          DOM.keterangan.value = '';
+          DOM.keterangan.placeholder = 'Contoh: Pulang sesuai jadwal';
+          setTimeout(() => DOM.keterangan.focus(), 80);
+        }
+        UI.updateTombolMulaiAbsen();
+        UI.setStatus('Isi keterangan pulang terlebih dahulu. Tombol Ambil Foto Pulang aktif setelah keterangan diisi.', 'warning');
+      },
+
+      async kirimAbsensiAktif() {
+        if (STATE.sedangKirim) return;
+        const data = ENGINE.buatDataAbsensi(STATE.menuAbsenAktif || 'Datang');
+        const error = STATE.menuAbsenAktif === 'Keterangan'
+          ? ENGINE.validasiSebelumKirim(data).replace('Foto wajib diambil sebelum mengirim absensi.', '').replace('Lokasi GPS wajib diambil sebelum mengirim absensi.', '').trim()
+          : ENGINE.validasiSebelumKirim(data);
+        if (error) {
+          UI.setStatus(error, 'error');
+          return;
+        }
+
+        STATE.sedangKirim = true;
+        const teksBtnKirimLama = DOM.btnKirim ? DOM.btnKirim.textContent : '';
+        const teksBtnMulaiLama = DOM.btnMulaiAbsen ? DOM.btnMulaiAbsen.textContent : '';
+        if (DOM.btnKirim) {
+          DOM.btnKirim.disabled = true;
+          DOM.btnKirim.textContent = 'Mengirim...';
+        }
+        if (DOM.btnMulaiAbsen) {
+          DOM.btnMulaiAbsen.disabled = true;
+          DOM.btnMulaiAbsen.textContent = 'Mengirim...';
+        }
+        UI.setStatus('Mengirim data absensi...', 'warning');
+
+        try {
+          const res = await API.kirimAbsensi(data);
+          if (res && res.sukses) {
+            if (data.statusAbsen === 'Datang' || data.statusAbsen === 'Pulang') STORAGE.simpanAbsensiHariIni(data);
+
+            if (data.statusAbsen === 'Keterangan') {
+              this.tampilkanHalamanUtama();
+              UI.tampilkanRingkasanKeterangan(data);
+              UI.clearStatus();
+              return;
+            }
+
+            STATE.fotoBase64 = null;
+            STATE.lokasiTerakhir = null;
+            STATE.baruSajaKirim = true;
+            UI.setStatus('Data kehadiran berhasil dikirim.', 'success');
+            UI.tampilkanFormAbsensi();
+            UI.renderStatusHariIni();
+            setTimeout(() => UI.clearStatus(), 1200);
+
+            // Jangan refresh server otomatis setelah kirim sukses.
+            // Ringkasan Datang/Pulang harus tetap mengikuti data yang baru dikirim,
+            // supaya pesan Pulang tidak hilang sebelum tombol OK diklik.
+            STATE.baruSajaKirim = false;
+          } else {
+            UI.setStatus((res && res.pesan) ? res.pesan : 'Absensi gagal dikirim.', 'error');
+          }
+        } catch (err) {
+          UI.setStatus('Data kehadiran gagal dikirim. ' + err.message, 'error');
+        } finally {
+          STATE.sedangKirim = false;
+          if (DOM.btnKirim) {
+            DOM.btnKirim.disabled = false;
+            DOM.btnKirim.textContent = teksBtnKirimLama || 'Kirim';
+          }
+          if (DOM.btnMulaiAbsen) {
+            DOM.btnMulaiAbsen.disabled = false;
+            DOM.btnMulaiAbsen.textContent = teksBtnMulaiLama || DOM.btnMulaiAbsen.textContent;
+            UI.updateTombolMulaiAbsen();
+          }
+        }
+      },
+
+      tampilkanHalamanUtama() {
+        UI.hide(DOM.registerArea);
+        UI.show(DOM.formArea);
+        UI.hide(DOM.adminPage);
+        UI.hide(DOM.cameraArea);
+        UI.hide(DOM.previewArea);
+        UI.show(DOM.pegawaiHeader);
+      },
+
+      selesaikanHari() {
+        UI.hide(DOM.absenPulangSummary);
+        UI.show(DOM.formAbsensiFields);
+
+        const data = STORAGE.ambilAbsensiHariIni();
+        STORAGE.tambahRiwayatLengkap(data);
+        STORAGE.resetAbsensiHariIni();
+        ENGINE.setMode('Datang');
+        UI.tampilkanFormAbsensi();
+        UI.clearStatus();
+      },
+
+      async bukaRiwayatPegawai() {
+        const id = this.getIdPegawaiAktif();
+        UI.show(DOM.rekapArea);
+        if (DOM.rekapContent) {
+          DOM.rekapContent.className = 'status warning';
+          DOM.rekapContent.textContent = 'Memuat riwayat absensi...';
+        }
+        if (!id) {
+          UI.renderRiwayatLokal();
+          return;
+        }
+        try {
+          const res = await API.riwayatPegawai(id);
+          if (res && res.sukses && Array.isArray(res.data)) UI.renderRiwayatServer(res.data);
+          else UI.renderRiwayatLokal();
+        } catch (err) {
+          UI.renderRiwayatLokal();
+        }
+      },
+
+      muatAdminDariCache() {
+        const cache = STORAGE.ambilCacheAdmin();
+        if (cache) {
+          STATE.adminRekap = Object.assign(STATE.adminRekap, cache);
+          UI.renderAdminRekap(STATE.adminRekap);
+        }
+      },
+
+      async bukaAdmin() {
+        UI.tampilkanAdmin();
+        this.muatAdminDariCache();
+        await this.muatRekapAdminHariIni(false);
+      },
+
+      async muatRekapAdminHariIni(paksaRefresh) {
+        if (!paksaRefresh) {
+          const cache = STORAGE.ambilCacheAdmin();
+          if (cache) {
+            STATE.adminRekap = Object.assign({ total: [], hadir: [], dinas: [], libur: [], belum: [] }, cache);
+            UI.renderAdminRekap(STATE.adminRekap);
+            return;
+          }
+        }
+
+        UI.setStatus('Memuat rekap admin...', 'warning');
+
+        try {
+          const res = await API.rekapAdminHariIni();
+          if (res && res.sukses && res.data) {
+            STATE.adminRekap = Object.assign({ total: [], hadir: [], dinas: [], libur: [], belum: [] }, res.data);
+            STORAGE.simpanCacheAdmin(STATE.adminRekap);
+            UI.renderAdminRekap(STATE.adminRekap);
+            UI.setStatus('Rekap admin berhasil diperbarui.', 'success');
+          } else {
+            STATE.adminRekap = { total: [], hadir: [], dinas: [], libur: [], belum: [] };
+            UI.renderAdminRekap(STATE.adminRekap);
+            UI.setStatus('Rekap admin kosong atau belum tersedia.', 'warning');
+          }
+        } catch (err) {
+          UI.setStatus('Gagal memuat rekap admin: ' + err.message, 'error');
+        }
+      },
+      buatTeksBelumAbsen() {
+        const data = STATE.adminRekap || {};
+        const list = Array.isArray(data.belum) ? data.belum.slice() : [];
+        const tanggal = UTIL.tanggalIndonesia(new Date());
+
+        const baris = list.length
+          ? list.map(function(nama, i) {
+              return (i + 1) + '. ' + nama;
+            }).join('\n')
+          : 'Tidak ada data.';
+
+        return [
+          'DAFTAR PEGAWAI BELUM ABSEN PAGI',
+          tanggal,
+          'Total: ' + list.length,
+          '',
+          baris,
+          '',
+          'Absensi Digital UPT Puskesmas Lawawoi'
+        ].join('\n');
+      },
+
+      async salinBelumAbsen() {
+        const teks = this.buatTeksBelumAbsen();
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(teks);
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = teks;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          }
+
+          if (DOM.copyToast) {
+            DOM.copyToast.classList.remove('hidden');
+            clearTimeout(this.copyToastTimer);
+            this.copyToastTimer = setTimeout(() => {
+              DOM.copyToast.classList.add('hidden');
+            }, 1200);
+          }
+        } catch (err) {
+          UI.setStatus('Gagal menyalin daftar. Silakan buka menu Belum dan salin manual.', 'error');
+        }
+      },
+
+      gantiUser() {
+        STATE.pegawaiAktif = null;
+        STATE.terakhirServer = null;
+        STATE.fotoBase64 = null;
+        STATE.lokasiTerakhir = null;
+        STATE.menuAbsenAktif = 'Datang';
+        STORAGE.remove(STORAGE.pegawaiKey());
+        UI.tampilkanRegistrasi();
+        UI.setStatus('Silakan masuk menggunakan ID Pegawai lain.', 'success');
+      },
+
+      resetPerangkat() {
+        const yakin = confirm('Reset perangkat ini? ID pegawai, cache riwayat, dan status lokal akan dihapus dari HP ini. Data yang sudah terkirim ke server tidak terhapus.');
+        if (!yakin) return;
+
+        STORAGE.resetPerangkatLokal();
+        STATE.pegawaiAktif = null;
+        STATE.terakhirServer = null;
+        STATE.fotoBase64 = null;
+        STATE.lokasiTerakhir = null;
+        STATE.menuAbsenAktif = 'Datang';
+        UI.tampilkanRegistrasi();
+        UI.setStatus('Cache perangkat berhasil dihapus. Silakan masukkan ID pegawai yang benar.', 'success');
+      },
+
+      toggleHeaderMenu() {
+        if (!DOM.headerMenuPanel) return;
+        DOM.headerMenuPanel.classList.toggle('hidden');
+      },
+
+      tutupHeaderMenu() {
+        if (DOM.headerMenuPanel) DOM.headerMenuPanel.classList.add('hidden');
+      },
+
+      lihatAdminDetail(jenis, target) {
+        document.querySelectorAll('[data-admin-chip]').forEach(function(el) { el.classList.toggle('active', el === target); });
+        UI.renderAdminDetail(jenis);
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { APP.mulai(); });
+    } else {
+      APP.mulai();
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js').catch(function(err) {
+          console.log('Service worker belum aktif:', err);
+        });
+      });
     }
   </script>
 </body>

@@ -819,9 +819,7 @@
     <!-- =====================================================
       HEADER
     ====================================================== -->
-    <header class="header">
-      <div id="networkBadge" class="network-badge online"><span class="network-dot"></span><span id="networkText">Online</span></div>
-      <div class="header-inner">
+    <header class="header"><div class="header-inner">
         <img
           class="kop-logo"
           src="https://upload.wikimedia.org/wikipedia/commons/b/b7/Official_Logo_of_Sidenreng_Rappang_Regency.png"
@@ -843,8 +841,8 @@
             <div id="headerMenuPanel" class="header-menu-panel hidden">
               <button type="button" class="header-menu-item" data-action="refresh-status">Refresh</button>
               <button type="button" class="header-menu-item" data-action="open-history">Riwayat</button>
-              <button type="button" id="btnAdminPage" class="header-menu-item hidden" data-action="open-admin">Admin</button>
-              <button type="button" class="header-menu-item" data-action="switch-user">Ganti User</button>
+              <button type="button" id="btnAdminPage" class="header-menu-item hidden" data-action="open-admin">Rekap</button>
+              <button type="button" id="btnSwitchUser" class="header-menu-item hidden" data-action="switch-user">Ganti User</button>
               <button type="button" class="header-menu-item danger-menu" data-action="reset-device">Reset Perangkat</button>
             </div>
           </div>
@@ -953,7 +951,7 @@
     ====================================================== -->
     <section id="adminPage" class="admin-page hidden">
       <div class="admin-header-row">
-        <h3 class="small-title">Pemantauan Admin</h3>
+        <h3 class="small-title">Rekap</h3>
         <div class="admin-header-actions">
           <button type="button" class="admin-copy-btn" data-action="copy-belum" title="Salin daftar belum absen">⧉</button>
           <div id="copyToast" class="copy-toast hidden">Telah disalin</div>
@@ -994,7 +992,7 @@
 
         <div id="adminDetail" class="admin-mini-panel hidden"></div>
 
-        <button type="button" class="btn-secondary" data-action="refresh-admin" style="margin-top:10px">Refresh Rekap Admin</button>
+        <button type="button" class="btn-secondary" data-action="refresh-admin" style="margin-top:10px">Refresh Rekap</button>
       </div>
     </section>
 
@@ -1077,7 +1075,7 @@
 
     const CONFIG = {
       WEB_APP_URL: 'https://script.google.com/macros/s/AKfycby1H2Klg2I0jdV1uTRdscNoSEDbmWD7FvYGKEpJ-89uuDLez4jw4b6i407vXXI1Sq_f/exec',
-      ADMIN_IDS: ['198001022005021003'],
+      ADMIN_IDS: ['198001022005021003','197211112005021003','198404152010012029'],
       MODE_UJI_COBA: true,
       TESTER_ID: '0000',
       CACHE_ADMIN_MS: 5 * 60 * 1000,
@@ -1135,11 +1133,11 @@
 
     function initDOM() {
       [
-        'networkBadge', 'networkText', 'registerArea', 'formArea', 'adminPage', 'adminArea', 
+        'networkBadgeInline', 'networkTextInline', 'registerArea', 'formArea', 'adminPage', 'adminArea', 
         'cameraArea', 'previewArea', 'rekapArea', 'rekapContent', 'statusBox',
         'registerMessage', 'inputIdPegawai', 'pegawaiHeader', 'namaPegawaiDisplay', 'metaPegawaiDisplay',
         'nama', 'idPegawai', 'jabatanPegawai', 'unitPegawai', 'detailAbsen',
-        'keterangan', 'btnAdminPage', 'headerMenuPanel', 'btnModeHadir', 'btnModeKeterangan', 'jamHariIni', 'tanggalHariIni',
+        'keterangan', 'btnAdminPage', 'btnSwitchUser', 'headerMenuPanel', 'btnModeHadir', 'btnModeKeterangan', 'jamHariIni', 'tanggalHariIni',
         'video', 'canvas', 'previewFoto', 'btnKirim', 'btnGps', 'btnUlangGps',
         'gpsStatus', 'gpsLat', 'gpsLng', 'gpsAcc',
         'adminTanggalFilter', 'adminTotal', 'adminHadir', 'adminDinas', 'adminTidakHadir', 'adminBelum', 'adminDetail', 'copyToast',
@@ -1169,8 +1167,27 @@
 
       jamIndonesia(date = new Date()) {
         return date.toLocaleTimeString('id-ID', {
-          hour: '2-digit', minute: '2-digit', second: '2-digit'
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+          hour12: false,
+          timeZone: 'Asia/Makassar'
         });
+      },
+
+      tanggalKeyWITA(date = new Date()) {
+        return new Intl.DateTimeFormat('sv-SE', {
+          timeZone: 'Asia/Makassar'
+        }).format(date);
+      },
+
+      timestampWITA(date = new Date()) {
+        const waktu = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Makassar' }));
+        const y = waktu.getFullYear();
+        const m = String(waktu.getMonth() + 1).padStart(2, '0');
+        const d = String(waktu.getDate()).padStart(2, '0');
+        const hh = String(waktu.getHours()).padStart(2, '0');
+        const mm = String(waktu.getMinutes()).padStart(2, '0');
+        const ss = String(waktu.getSeconds()).padStart(2, '0');
+        return `${y}-${m}-${d}T${hh}:${mm}:${ss}+08:00`;
       }
     };
 
@@ -1180,7 +1197,7 @@
       },
 
       todayKey() {
-        return new Date().toISOString().slice(0, 10);
+        return UTIL.tanggalKeyWITA(new Date());
       },
 
       read(key, fallback = null) {
@@ -1287,7 +1304,7 @@
       cleanupAbsensiLama(hari = CONFIG.CLEANUP_ABSEN_HARI) {
         const batas = new Date();
         batas.setDate(batas.getDate() - hari);
-        const batasKey = batas.toISOString().slice(0, 10);
+        const batasKey = UTIL.tanggalKeyWITA(batas);
         const prefix = CONFIG.STORAGE_PREFIX + 'absen_hari_ini_';
         Object.keys(localStorage).forEach(function(key) {
           if (!key.startsWith(prefix)) return;
@@ -1469,7 +1486,7 @@
           longitude: lokasi.longitude || '',
           accuracy: lokasi.accuracy || '',
           fotoBase64: STATE.fotoBase64 || '',
-          timestampClient: new Date(Date.now() + (8 * 60 * 60 * 1000)).toISOString(),
+          timestampClient: UTIL.timestampWITA(new Date()),
           tanggalTugas: this.tanggalTugasAbsensi(statusAbsen, detailOtomatis, datangHariIni),
           autoLepasMalam: statusAbsen === 'Pulang' && detailOtomatis === 'Dinas Malam' ? 'YA' : ''
         };
@@ -1752,20 +1769,33 @@ teksRingkasanPulang(datang, pulang) {
 
       setStatus(pesan, tipe = '') {
         if (!DOM.statusBox) return;
+        clearTimeout(this.statusAutoHideTimer);
         DOM.statusBox.className = 'status ' + tipe;
-        DOM.statusBox.textContent = pesan;
+        DOM.statusBox.innerHTML = '<button type="button" class="status-close" data-action="close-status" title="Tutup">×</button>' + UTIL.escapeHTML(pesan);
         DOM.statusBox.classList.remove('hidden');
+
+        const rekapTerbuka = DOM.rekapArea && !DOM.rekapArea.classList.contains('hidden');
+
+        // Status umum otomatis hilang,
+        // tetapi riwayat tetap tampil karena sudah memiliki tombol Tutup sendiri.
+        if (!rekapTerbuka) {
+          this.statusAutoHideTimer = setTimeout(() => {
+            this.clearStatus();
+          }, 10000);
+        }
       },
 
       clearStatus() { if (DOM.statusBox) DOM.statusBox.classList.add('hidden'); },
 
       updateNetworkStatus() {
         const online = navigator.onLine !== false;
-        if (DOM.networkBadge) {
-          DOM.networkBadge.classList.toggle('online', online);
-          DOM.networkBadge.classList.toggle('offline', !online);
+        if (DOM.networkBadgeInline) {
+          DOM.networkBadgeInline.classList.toggle('online', online);
+          DOM.networkBadgeInline.classList.toggle('offline', !online);
         }
-        if (DOM.networkText) DOM.networkText.textContent = online ? 'Online' : 'Offline';
+        if (DOM.networkTextInline) {
+          DOM.networkTextInline.textContent = online ? 'Online' : 'Offline';
+        }
       },
 
       setRegisterMessage(pesan, tipe) {
@@ -1831,34 +1861,47 @@ teksRingkasanPulang(datang, pulang) {
         const bolehAdmin = testerMode || CONFIG.ADMIN_IDS.includes(idAktif);
         if (bolehAdmin) {
           this.show(DOM.btnAdminPage);
+          this.show(DOM.btnSwitchUser);
           this.show(DOM.adminArea);
         } else {
           this.hide(DOM.btnAdminPage);
+          this.hide(DOM.btnSwitchUser);
           this.hide(DOM.adminArea);
         }
       },
 
       updateModeAbsensi() {
-        if (DOM.btnModeHadir) DOM.btnModeHadir.classList.toggle('active', STATE.menuAbsenAktif !== 'Keterangan');
-        if (DOM.btnModeKeterangan) DOM.btnModeKeterangan.classList.toggle('active', STATE.menuAbsenAktif === 'Keterangan');
-        if (DOM.labelDetailAbsen) DOM.labelDetailAbsen.textContent = STATE.menuAbsenAktif === 'Keterangan'
-          ? 'Status Absensi'
-          : 'Jenis Dinas / Kegiatan';
+        const modePulang = STATE.menuAbsenAktif === 'Pulang';
+        const modeKeterangan = STATE.menuAbsenAktif === 'Keterangan';
+
+        if (DOM.btnModeHadir) DOM.btnModeHadir.classList.toggle('active', !modeKeterangan);
+        if (DOM.btnModeKeterangan) {
+          DOM.btnModeKeterangan.classList.toggle('active', modeKeterangan);
+          DOM.btnModeKeterangan.disabled = modePulang;
+        }
+
+        if (DOM.labelDetailAbsen) {
+          DOM.labelDetailAbsen.textContent = modeKeterangan
+            ? 'Status Absensi'
+            : 'Jenis Dinas / Kegiatan';
+        }
+
         if (DOM.labelKeterangan) {
-          DOM.labelKeterangan.textContent = STATE.menuAbsenAktif === 'Keterangan'
+          DOM.labelKeterangan.textContent = modeKeterangan
             ? 'Keterangan'
             : 'Keterangan / Lokasi Kegiatan';
         }
+
         if (DOM.btnMulaiAbsen) {
-          DOM.btnMulaiAbsen.textContent = STATE.menuAbsenAktif === 'Keterangan'
+          DOM.btnMulaiAbsen.textContent = modeKeterangan
             ? 'Kirim Keterangan'
-            : (STATE.menuAbsenAktif === 'Pulang' ? 'Ambil Foto Pulang' : 'Ambil Foto');
+            : (modePulang ? 'Ambil Foto Pulang' : 'Ambil Foto');
         }
 
         if (DOM.keterangan) {
-          if (STATE.menuAbsenAktif === 'Keterangan') {
+          if (modeKeterangan) {
             DOM.keterangan.placeholder = 'Contoh: Sesuai jadwal, Libur P3K, Izin keluarga';
-          } else if (STATE.menuAbsenAktif === 'Pulang') {
+          } else if (modePulang) {
             DOM.keterangan.placeholder = 'Contoh: Pulang sesuai jadwal';
           } else {
             DOM.keterangan.placeholder = 'Contoh: UGD, Rawat Inap, Poliklinik Umum';
@@ -1866,11 +1909,25 @@ teksRingkasanPulang(datang, pulang) {
         }
 
         this.isiPilihanDetail(true);
+
+        if (DOM.detailAbsen) {
+          DOM.detailAbsen.disabled = modePulang;
+        }
+
         this.updateTombolMulaiAbsen();
       },
 
       isiPilihanDetail(pertahankanNilai) {
         if (!DOM.detailAbsen) return;
+
+        if (STATE.menuAbsenAktif === 'Pulang') {
+          const datang = STORAGE.ambilAbsensiHariIni().datang || {};
+          const detailDatang = datang.detailAbsen || 'Dinas Pagi';
+          DOM.detailAbsen.innerHTML = '<option value="' + UTIL.escapeHTML(detailDatang) + '">' + UTIL.escapeHTML(detailDatang) + '</option>';
+          DOM.detailAbsen.value = detailDatang;
+          return;
+        }
+
         const nilaiLama = DOM.detailAbsen.value;
         const pilihan = ENGINE.pilihanDetail(STATE.menuAbsenAktif);
         DOM.detailAbsen.innerHTML = pilihan.map(function(nama) {
@@ -2047,7 +2104,16 @@ teksRingkasanPulang(datang, pulang) {
           const tampilJam = (jenis === 'hadir' || jenis === 'dinas')
             ? ' ' + (datang || '...') + ' - ' + (pulang || '...')
             : '';
-          const info = [status, keterangan].filter(Boolean).join(' ');
+          let info = '';
+
+          // Rekap hanya menampilkan keterangan utama dari absensi datang.
+          // Contoh:
+          // Baharuddin 14:00 - 20:00 (Dinas Sore UGD)
+          if (jenis === 'hadir' || jenis === 'dinas') {
+            info = [status, keterangan].filter(Boolean).join(' ');
+          } else {
+            info = status || keterangan;
+          }
 
           return nomor + '. ' + nama + tampilJam + (info ? ' (' + UTIL.escapeHTML(info) + ')' : '');
         }
@@ -2124,6 +2190,7 @@ teksRingkasanPulang(datang, pulang) {
         UI.updateJamTanggal();
         UI.updateNetworkStatus();
         setInterval(UI.updateJamTanggal, 1000);
+        setInterval(() => UI.updateNetworkStatus(), 5000);
         STORAGE.cleanupAbsensiLama();
         STATE.pegawaiAktif = STORAGE.ambilPegawai();
         if (STATE.pegawaiAktif) {
@@ -2151,6 +2218,7 @@ teksRingkasanPulang(datang, pulang) {
             'refresh-status': () => this.cekRiwayatTerakhir(true),
             'open-history': () => this.bukaRiwayatPegawai(),
             'close-history': () => UI.hide(DOM.rekapArea),
+            'close-status': () => UI.clearStatus(),
             'open-admin': () => this.bukaAdmin(),
             'back-attendance': () => UI.kembaliKeAbsensi(),
             'refresh-admin': () => this.muatRekapAdminHariIni(true),
@@ -2261,7 +2329,11 @@ teksRingkasanPulang(datang, pulang) {
             ENGINE.setMode(ENGINE.statusBerikutnya());
             UI.renderStatusHariIni();
           }
-          if (tampilkanPesan) UI.setStatus(this.teksStatusTerakhir(row), row ? 'success' : 'warning');
+          if (tampilkanPesan) {
+            UI.setStatus(this.teksStatusTerakhir(row), row ? 'success' : 'warning');
+            clearTimeout(this.statusRefreshTimer);
+            this.statusRefreshTimer = setTimeout(() => UI.clearStatus(), 4500);
+          }
         } catch (err) {
           if (tampilkanPesan) UI.setStatus('Gagal memeriksa status: ' + err.message, 'error');
         }
@@ -2290,6 +2362,10 @@ teksRingkasanPulang(datang, pulang) {
       },
 
       setModeKeterangan() {
+        if (STATE.menuAbsenAktif === 'Pulang') {
+          UI.setStatus('Selesaikan Absensi Pulang terlebih dahulu.', 'warning');
+          return;
+        }
         ENGINE.setMode('Keterangan');
       },
 
@@ -2369,13 +2445,24 @@ teksRingkasanPulang(datang, pulang) {
         UI.hide(DOM.absenDatangSummary);
         UI.hide(DOM.absenPulangSummary);
         UI.show(DOM.formAbsensiFields);
+
+        const datang = STORAGE.ambilAbsensiHariIni().datang || {};
+        if (DOM.detailAbsen) {
+          const detailDatang = datang.detailAbsen || 'Dinas Pagi';
+          DOM.detailAbsen.innerHTML = '<option value="' + UTIL.escapeHTML(detailDatang) + '">' + UTIL.escapeHTML(detailDatang) + '</option>';
+          DOM.detailAbsen.value = detailDatang;
+          DOM.detailAbsen.disabled = true;
+        }
+
+        if (DOM.btnModeKeterangan) DOM.btnModeKeterangan.disabled = true;
+
         if (DOM.keterangan) {
           DOM.keterangan.value = '';
           DOM.keterangan.placeholder = 'Contoh: Pulang sesuai jadwal';
           setTimeout(() => DOM.keterangan.focus(), 80);
         }
         UI.updateTombolMulaiAbsen();
-        UI.setStatus('Isi keterangan pulang terlebih dahulu. Tombol Ambil Foto Pulang aktif setelah keterangan diisi.', 'warning');
+        UI.setStatus('Isi keterangan pulang terlebih dahulu. Jenis dinas mengikuti absensi datang dan tidak bisa diubah.', 'warning');
       },
 
       async kirimAbsensiAktif() {
@@ -2461,7 +2548,16 @@ teksRingkasanPulang(datang, pulang) {
         const data = STORAGE.ambilAbsensiHariIni();
         STORAGE.tambahRiwayatLengkap(data);
         STORAGE.resetAbsensiHariIni();
+
+        STATE.fotoBase64 = null;
+        STATE.lokasiTerakhir = null;
+        STATE.terakhirServer = null;
         ENGINE.setMode('Datang');
+
+        if (DOM.keterangan) DOM.keterangan.value = '';
+        if (DOM.detailAbsen) DOM.detailAbsen.disabled = false;
+        if (DOM.btnModeKeterangan) DOM.btnModeKeterangan.disabled = false;
+
         UI.tampilkanFormAbsensi();
         UI.clearStatus();
       },
@@ -2513,7 +2609,7 @@ teksRingkasanPulang(datang, pulang) {
         const dasar = STATE.adminTanggal || STORAGE.todayKey();
         const d = new Date(dasar + 'T00:00:00');
         d.setDate(d.getDate() + arah);
-        this.setTanggalAdmin(d.toISOString().slice(0, 10), true);
+        this.setTanggalAdmin(UTIL.tanggalKeyWITA(d), true);
       },
 
       async muatRekapAdminHariIni(paksaRefresh) {

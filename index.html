@@ -539,7 +539,8 @@
       object-fit: cover;
       object-position: center top;
       margin-top: 8px;
-    }
+transform: scaleX(-1);
+}
 
     #previewFoto {
       width: 112px;
@@ -951,7 +952,6 @@
           </div>
           <select id="detailAbsen">
             <option>Dinas Pagi</option>
-            <option>Dinas Luar</option>
           </select>
 
           <div class="label-row">
@@ -1098,7 +1098,7 @@
     const CONFIG = {
       WEB_APP_URL: 'https://script.google.com/macros/s/AKfycby1H2Klg2I0jdV1uTRdscNoSEDbmWD7FvYGKEpJ-89uuDLez4jw4b6i407vXXI1Sq_f/exec',
       ADMIN_IDS: ['198001022005021003','197211112005021003','198404152010012029'],
-      MODE_UJI_COBA: true,
+      MODE_UJI_COBA: false,
       TESTER_ID: '0000',
       CACHE_ADMIN_MS: 5 * 60 * 1000,
       RIWAYAT_LIMIT: 30,
@@ -1110,23 +1110,22 @@
       GPS_MAX_AGE_MS: 0,
       JADWAL_DINAS: {
         Datang: [
-          { nama: 'Dinas Pagi', mulai: '07:15', selesai: '12:00' },
-          { nama: 'Dinas Sore', mulai: '13:45', selesai: '18:00' },
+          { nama: 'Dinas Pagi', mulai: '07:00', selesai: '11:00' },
+          { nama: 'Dinas Sore', mulai: '13:30', selesai: '18:00' },
           { nama: 'Dinas Malam', mulai: '19:45', selesai: '23:00' }
         ],
         Pulang: [
           { nama: 'Dinas Pagi', mulai: '11:30', selesai: '18:00' },
-          { nama: 'Dinas Sore', mulai: '20:00', selesai: '23:00' },
-          { nama: 'Dinas Malam', mulai: '08:00', selesai: '10:00' }
+          { nama: 'Dinas Sore', mulai: '19:30', selesai: '23:00' },
+          { nama: 'Dinas Malam', mulai: '07:30', selesai: '10:00' }
         ],
         Keterangan: [
-          { nama: 'Libur', batas: '08:00' },
-          { nama: 'Sakit', batas: '08:00' },
-          { nama: 'Cuti', batas: '08:00' },
-          { nama: 'Lepas Malam', batas: '08:00' },
-          { nama: 'Dinas Luar', batas: '08:00' },
-          { nama: 'Dinas Sore', batas: '08:00' },
-          { nama: 'Dinas Malam', batas: '08:00' }
+          { nama: 'Libur', batas: '10:00' },
+          { nama: 'Sakit', batas: '10:00' },
+          { nama: 'Cuti', batas: '10:00' },
+          { nama: 'Dinas Luar', batas: '10:00' },
+          { nama: 'Dinas Sore', batas: '10:00' },
+          { nama: 'Dinas Malam', batas: '10:00' }
         ]
       }
     };
@@ -1421,24 +1420,23 @@
             .map(function(j) { return j.nama; });
 
           if (!pilihan.length) {
-            return ['Keterangan ditutup setelah pukul 08.00'];
+            return ['Keterangan ditutup setelah pukul 09.00'];
           }
 
           return pilihan;
         }
 
         if (this.isTesterMode()) {
-          const semua = CONFIG.JADWAL_DINAS[menu].map(function(j) { return j.nama; });
-          if (!semua.includes('Dinas Luar')) semua.push('Dinas Luar');
-          return semua;
-        }
+  return CONFIG.JADWAL_DINAS[menu].map(function(j) {
+    return j.nama;
+  });
+}
 
-        const aktif = CONFIG.JADWAL_DINAS[menu]
-          .filter((j) => this.dalamRentangJam(j))
-          .map(function(j) { return j.nama; });
-
-        if (!aktif.includes('Dinas Luar')) aktif.push('Dinas Luar');
-        return aktif;
+return CONFIG.JADWAL_DINAS[menu]
+  .filter((j) => this.dalamRentangJam(j))
+  .map(function(j) {
+    return j.nama;
+  });
       },
 
       formatDurasiKerja(ms) {
@@ -1740,6 +1738,8 @@ teksRingkasanPulang(datang, pulang) {
         DOM.canvas.height = outputSize;
 
         const ctx = DOM.canvas.getContext('2d');
+ctx.translate(outputSize, 0);
+ctx.scale(-1, 1);
         ctx.drawImage(
           DOM.video,
           cropX,

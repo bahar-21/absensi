@@ -834,6 +834,149 @@ transform: scaleX(-1);
       letter-spacing: .4px;
     }
 
+    /* =========================================================
+       12. REKAP BULANAN ADMIN
+    ========================================================= */
+    .admin-section-tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:5px;
+      margin:0 0 12px;
+      padding:4px;
+      border-radius:14px;
+      background:#f1f5f9;
+      border:1px solid #e2e8f0;
+    }
+
+    .admin-tab-btn{
+      margin:0;
+      padding:9px 8px;
+      border-radius:11px;
+      background:transparent;
+      color:#475569;
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .admin-tab-btn.active{
+      background:#0f766e;
+      color:#ffffff;
+    }
+
+    .monthly-filter{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      padding:10px;
+      border-radius:16px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      margin-bottom:10px;
+    }
+
+    .monthly-filter .full{
+      grid-column:1 / -1;
+    }
+
+    .monthly-filter label{
+      margin:0 0 5px;
+      font-size:11px;
+    }
+
+    .monthly-filter select,
+    .monthly-filter input{
+      padding:10px;
+      border-radius:12px;
+      font-size:13px;
+    }
+
+    .monthly-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-bottom:10px;
+    }
+
+    .monthly-actions button{
+      margin-top:0;
+      padding:11px 8px;
+      font-size:12px;
+    }
+
+    .table-wrap{
+      overflow-x:auto;
+      border:1px solid #e2e8f0;
+      border-radius:14px;
+      background:#ffffff;
+    }
+
+    .rekap-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+      min-width:720px;
+    }
+
+    .rekap-table th,
+    .rekap-table td{
+      padding:8px 9px;
+      border-bottom:1px solid #e2e8f0;
+      text-align:left;
+      white-space:nowrap;
+    }
+
+    .rekap-table th{
+      position:sticky;
+      top:0;
+      background:#ecfdf5;
+      color:#0f766e;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.3px;
+      z-index:1;
+    }
+
+    .rekap-table td.num,
+    .rekap-table th.num{
+      text-align:center;
+    }
+
+    .rekap-table tbody tr:nth-child(even){
+      background:#f8fafc;
+    }
+
+    .monthly-note{
+      margin:8px 0 0;
+      font-size:11px;
+      color:#64748b;
+      line-height:1.45;
+    }
+
+.jam-kerja-info{
+  margin-top:24px;
+  padding-top:10px;
+
+  border-top:1px solid #e2e8f0;
+
+  font-size:11px;
+  color:#64748b;
+}
+
+.jam-kerja-title{
+  font-size:11px;
+  font-weight:700;
+  color:#475569;
+  margin-bottom:6px;
+}
+
+.jam-kerja-row{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+
+  padding:2px 0;
+  line-height:1.4;
+}
   </style>
 </head>
 
@@ -982,6 +1125,13 @@ transform: scaleX(-1);
       </div>
 
       <div id="adminArea">
+
+        <div class="admin-section-tabs">
+          <button type="button" id="btnTabHarian" class="admin-tab-btn active" data-action="admin-tab-harian">Rekap Harian</button>
+          <button type="button" id="btnTabBulanan" class="admin-tab-btn" data-action="admin-tab-bulanan">Rekap Bulanan</button>
+        </div>
+
+        <div id="adminHarianArea">
         <div class="admin-date-filter">
           <input id="adminTanggalFilter" type="date" />
           <button type="button" class="btn-secondary" data-action="admin-prev-date" title="Tanggal sebelumnya">‹</button>
@@ -1015,6 +1165,34 @@ transform: scaleX(-1);
         <div id="adminDetail" class="admin-mini-panel hidden"></div>
 
         <button type="button" class="btn-secondary" data-action="refresh-admin" style="margin-top:10px">Refresh Rekap</button>
+        </div>
+
+        <div id="adminBulananArea" class="hidden">
+          <div class="monthly-filter">
+            <div>
+              <label for="rekapBulan">Bulan</label>
+              <select id="rekapBulan"></select>
+            </div>
+            <div>
+              <label for="rekapTahun">Tahun</label>
+              <input id="rekapTahun" type="number" inputmode="numeric" min="2024" max="2100" />
+            </div>
+            <div class="full">
+              <label for="rekapPegawai">Pegawai</label>
+              <select id="rekapPegawai">
+                <option value="SEMUA">Semua Pegawai</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="monthly-actions">
+            <button type="button" class="btn-main" data-action="load-monthly-recap">Tampilkan Rekap</button>
+            <button type="button" class="btn-secondary" data-action="download-monthly-csv">Download CSV</button>
+          </div>
+
+          <div id="rekapBulananInfo" class="monthly-note">Pilih bulan, tahun, dan pegawai lalu tekan Tampilkan Rekap.</div>
+          <div id="rekapBulananTable" class="table-wrap hidden"></div>
+        </div>
       </div>
     </section>
 
@@ -1077,6 +1255,36 @@ transform: scaleX(-1);
       <div id="rekapContent" class="status"></div>
       <button type="button" class="btn-secondary" data-action="close-history">Tutup</button>
     </section>
+<div class="jam-kerja-info">
+  <div class="jam-kerja-title">
+    Jam Kerja UPT Puskesmas Lawawoi
+  </div>
+
+  <div class="jam-kerja-row">
+    <span>Senin - Kamis</span>
+    <span>07.30 - 13.45</span>
+  </div>
+
+  <div class="jam-kerja-row">
+    <span>Jumat</span>
+    <span>07.30 - 11.30</span>
+  </div>
+
+  <div class="jam-kerja-row">
+    <span>Sabtu</span>
+    <span>07.30 - 13.45</span>
+  </div>
+
+<div class="jam-kerja-row">
+    <span>Dinas Sore</span>
+    <span>14.00 - 20.00</span>
+  </div>
+
+  <div class="jam-kerja-row">
+    <span>Dinas Malam</span>
+    <span>20.00 - 08.00</span>
+  </div>
+</div>
   </div>
 
   <script>
@@ -1147,7 +1355,9 @@ transform: scaleX(-1);
         libur: [],
         belum: []
       },
-      adminTanggal: ''
+      adminTanggal: '',
+      adminTabAktif: 'harian',
+      rekapBulanan: { mode: 'semua', rows: [], daftarPegawai: [] }
     };
 
     const DOM = {};
@@ -1162,6 +1372,7 @@ transform: scaleX(-1);
         'video', 'canvas', 'previewFoto', 'btnKirim', 'btnGps', 'btnUlangGps',
         'gpsStatus', 'gpsLat', 'gpsLng', 'gpsAcc',
         'adminTanggalFilter', 'adminTotal', 'adminHadir', 'adminDinas', 'adminTidakHadir', 'adminBelum', 'adminDetail', 'copyToast',
+        'btnTabHarian', 'btnTabBulanan', 'adminHarianArea', 'adminBulananArea', 'rekapBulan', 'rekapTahun', 'rekapPegawai', 'rekapBulananInfo', 'rekapBulananTable',
         'absenDatangSummary', 'summaryDatangTitle', 'summaryDatangText',
         'absenPulangSummary', 'summaryPulangBadge', 'summaryPulangTitle', 'summaryPulangText', 'summaryPulangSpirit',
         'formAbsensiFields', 'labelDetailAbsen', 'labelKeterangan', 'btnMulaiAbsen'
@@ -1342,28 +1553,82 @@ transform: scaleX(-1);
     };
 
     const API = {
-      buildURL(params) {
-        const url = new URL(CONFIG.WEB_APP_URL);
-        Object.keys(params || {}).forEach(function(key) {
-          if (params[key] !== undefined && params[key] !== null) url.searchParams.set(key, params[key]);
-        });
-        return url.toString();
-      },
+  buildURL(params) {
+    const url = new URL(CONFIG.WEB_APP_URL);
+    Object.keys(params || {}).forEach(function(key) {
+      if (params[key] !== undefined && params[key] !== null) url.searchParams.set(key, params[key]);
+    });
+    return url.toString();
+  },
 
-      async get(params) {
-        const res = await fetch(this.buildURL(params), { method: 'GET', cache: 'no-store' });
-        if (!res.ok) throw new Error('Server tidak merespons dengan baik. Kode: ' + res.status);
-        return res.json();
-      },
+  jsonp(params, timeoutMs = 15000) {
+    return new Promise(function(resolve, reject) {
+      const callbackName =
+        'jsonp_absensi_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
 
-      async post(data) {
-        const res = await fetch(CONFIG.WEB_APP_URL, {
-          method: 'POST',
-          body: JSON.stringify(data)
-        });
-        if (!res.ok) throw new Error('Gagal mengirim data. Kode: ' + res.status);
-        return res.json();
-      },
+      const script = document.createElement('script');
+
+      window[callbackName] = function(data) {
+        clearTimeout(timer);
+        delete window[callbackName];
+
+        if (script && script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+
+        resolve(data);
+      };
+
+      const url = new URL(CONFIG.WEB_APP_URL);
+
+      Object.keys(params || {}).forEach(function(key) {
+        if (params[key] !== undefined && params[key] !== null) {
+          url.searchParams.set(key, params[key]);
+        }
+      });
+
+      url.searchParams.set('callback', callbackName);
+      url.searchParams.set('_t', Date.now());
+
+      script.src = url.toString();
+
+      script.onerror = function() {
+        clearTimeout(timer);
+        delete window[callbackName];
+
+        if (script && script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+
+        reject(new Error('Gagal menghubungi server. Periksa koneksi internet atau tekan Reset Perangkat lalu coba lagi.'));
+      };
+
+      const timer = setTimeout(function() {
+        delete window[callbackName];
+
+        if (script && script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+
+        reject(new Error('Server lambat atau tidak merespons. Silakan coba lagi.'));
+      }, timeoutMs);
+
+      document.body.appendChild(script);
+    });
+  },
+
+  async get(params) {
+    return this.jsonp(params);
+  },
+
+  async post(data) {
+    const res = await fetch(CONFIG.WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Gagal mengirim data. Kode: ' + res.status);
+    return res.json();
+  },
 
       cekPegawai(idPegawai) {
         return this.get({ aksi: 'cekNIK', nik: idPegawai });
@@ -1375,6 +1640,20 @@ transform: scaleX(-1);
 
       rekapAdminHariIni(tanggal) {
         return this.get({ aksi: 'rekapHariIni', tanggal: tanggal || STORAGE.todayKey() });
+      },
+
+      rekapBulanan(bulan, tahun, idPegawai) {
+        return this.get({
+          aksi: 'rekapBulanan',
+          bulan: bulan,
+          tahun: tahun,
+          idPegawai: idPegawai || 'SEMUA'
+        });
+      },
+
+
+      daftarPegawai() {
+        return this.get({ aksi: 'daftarPegawai' });
       },
 
       riwayatPegawai(idPegawai) {
@@ -1524,9 +1803,13 @@ return CONFIG.JADWAL_DINAS[menu]
         if (!data.statusAbsen) return 'Status absen belum tersedia.';
         if (!data.detailAbsen) return 'Jenis dinas/kegiatan wajib dipilih.';
 
-        if (!this.isTesterMode() && data.detailAbsen === 'Keterangan ditutup setelah pukul 08.00') {
-          return 'Pengisian keterangan hanya dapat dilakukan sampai pukul 08.00.';
-        }
+       if (
+  !this.isTesterMode() &&
+  data.statusAbsen === 'Keterangan' &&
+  String(data.detailAbsen || '').includes('Keterangan ditutup')
+) {
+  return 'Pengisian Status Absensi sudah ditutup.';
+}
 
         // Pembatasan hanya untuk absensi datang.
         // Mode uji coba tidak dibatasi jam agar mudah mengetes semua menu.
@@ -1959,14 +2242,15 @@ ctx.scale(-1, 1);
       },
 
       updateTombolMulaiAbsen() {
-        if (!DOM.btnMulaiAbsen) return;
-        if (STATE.menuAbsenAktif === 'Pulang') {
-          const isi = DOM.keterangan ? DOM.keterangan.value.trim() : '';
-          DOM.btnMulaiAbsen.disabled = !isi;
-          return;
-        }
-        DOM.btnMulaiAbsen.disabled = false;
-      },
+  if (!DOM.btnMulaiAbsen) return;
+
+  if (STATE.menuAbsenAktif === 'Pulang') {
+    DOM.btnMulaiAbsen.disabled = false;
+    return;
+  }
+
+  DOM.btnMulaiAbsen.disabled = !DOM.detailAbsen.value;
+},
 
       renderStatusHariIni() {
         const data = STORAGE.ambilAbsensiHariIni();
@@ -2072,6 +2356,90 @@ ctx.scale(-1, 1);
         this.hide(DOM.adminPage);
         this.renderStatusHariIni();
       },
+
+      setAdminTab(tab) {
+        STATE.adminTabAktif = tab || 'harian';
+        const bulanan = STATE.adminTabAktif === 'bulanan';
+        if (DOM.btnTabHarian) DOM.btnTabHarian.classList.toggle('active', !bulanan);
+        if (DOM.btnTabBulanan) DOM.btnTabBulanan.classList.toggle('active', bulanan);
+        this.toggle(DOM.adminHarianArea, !bulanan);
+        this.toggle(DOM.adminBulananArea, bulanan);
+      },
+
+      toggle(el, tampil) {
+        if (!el) return;
+        el.classList.toggle('hidden', !tampil);
+      },
+
+      isiFilterRekapBulanan() {
+        const now = new Date();
+        const bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        if (DOM.rekapBulan && !DOM.rekapBulan.options.length) {
+          DOM.rekapBulan.innerHTML = bulanNama.map(function(nama, i) {
+            const val = String(i + 1);
+            return '<option value="' + val + '">' + nama + '</option>';
+          }).join('');
+        }
+        if (DOM.rekapBulan && !DOM.rekapBulan.value) DOM.rekapBulan.value = String(now.getMonth() + 1);
+        if (DOM.rekapTahun && !DOM.rekapTahun.value) DOM.rekapTahun.value = String(now.getFullYear());
+      },
+
+      isiDaftarPegawaiBulanan(list) {
+        if (!DOM.rekapPegawai || !Array.isArray(list)) return;
+        const nilaiAktif = DOM.rekapPegawai.value || 'SEMUA';
+        const opsi = ['<option value="SEMUA">Semua Pegawai</option>'].concat(list.map(function(p) {
+          const id = UTIL.escapeHTML(p.idPegawai || p.nik || p.id || p.nama || '');
+          const nama = UTIL.escapeHTML(p.nama || p.Nama || id);
+          return '<option value="' + id + '">' + nama + '</option>';
+        }));
+        DOM.rekapPegawai.innerHTML = opsi.join('');
+        DOM.rekapPegawai.value = nilaiAktif;
+        if (!DOM.rekapPegawai.value) DOM.rekapPegawai.value = 'SEMUA';
+      },
+
+      renderRekapBulanan(payload) {
+        const data = payload || {};
+        const rows = Array.isArray(data.rows) ? data.rows : [];
+        const modeRaw = data.mode || ((DOM.rekapPegawai?.value === 'SEMUA') ? 'semua' : 'pegawai');
+        const mode = String(modeRaw).toLowerCase();
+        STATE.rekapBulanan = Object.assign({ mode: mode, rows: rows, daftarPegawai: [] }, data);
+        this.isiDaftarPegawaiBulanan(data.daftarPegawai || data.pegawai || []);
+
+        if (DOM.rekapBulananInfo) {
+          DOM.rekapBulananInfo.textContent = rows.length
+            ? ('Menampilkan ' + rows.length + ' baris rekap bulanan.')
+            : 'Tidak ada data rekap untuk filter ini.';
+        }
+
+        if (!DOM.rekapBulananTable) return;
+        if (!rows.length) {
+          DOM.rekapBulananTable.innerHTML = '';
+          this.hide(DOM.rekapBulananTable);
+          return;
+        }
+
+        const kolomSemua = [
+          ['nama','Nama Pegawai'], ['dinasPagi','Pagi'], ['dinasSore','Sore'], ['dinasMalam','Malam'],
+          ['dinasLuar','Luar'], ['sakit','Sakit'], ['cuti','Cuti'], ['libur','Libur'], ['lepasMalam','Lepas Malam']
+        ];
+        const kolomPegawai = [
+          ['tanggal','Tanggal'], ['status','Status'], ['datang','Datang'], ['pulang','Pulang'], ['keterangan','Keterangan']
+        ];
+        const kolom = mode === 'pegawai' ? kolomPegawai : kolomSemua;
+        const html = '<table class="rekap-table"><thead><tr>' + kolom.map(function(k) {
+          const isNum = ['dinasPagi','dinasSore','dinasMalam','dinasLuar','sakit','cuti','libur','lepasMalam'].includes(k[0]);
+          return '<th class="' + (isNum ? 'num' : '') + '">' + k[1] + '</th>';
+        }).join('') + '</tr></thead><tbody>' + rows.map(function(row) {
+          return '<tr>' + kolom.map(function(k) {
+            const key = k[0];
+            const isNum = ['dinasPagi','dinasSore','dinasMalam','dinasLuar','sakit','cuti','libur','lepasMalam'].includes(key);
+            return '<td class="' + (isNum ? 'num' : '') + '">' + UTIL.escapeHTML(row[key] ?? '') + '</td>';
+          }).join('') + '</tr>';
+        }).join('') + '</tbody></table>';
+        DOM.rekapBulananTable.innerHTML = html;
+        this.show(DOM.rekapBulananTable);
+      },
+
 
       renderAdminRekap(data) {
         const d = data || { total: [], hadir: [], dinas: [], libur: [], belum: [] };
@@ -2244,6 +2612,10 @@ ctx.scale(-1, 1);
             'open-admin': () => this.bukaAdmin(),
             'back-attendance': () => UI.kembaliKeAbsensi(),
             'refresh-admin': () => this.muatRekapAdminHariIni(true),
+            'admin-tab-harian': () => this.bukaTabAdmin('harian'),
+            'admin-tab-bulanan': () => this.bukaTabAdmin('bulanan'),
+            'load-monthly-recap': () => this.muatRekapBulanan(),
+            'download-monthly-csv': () => this.downloadRekapBulananCSV(),
             'admin-prev-date': () => this.geserTanggalAdmin(-1),
             'admin-today-date': () => this.setTanggalAdmin(STORAGE.todayKey(), true),
             'admin-next-date': () => this.geserTanggalAdmin(1),
@@ -2274,6 +2646,24 @@ ctx.scale(-1, 1);
 
         if (DOM.adminTanggalFilter) {
           DOM.adminTanggalFilter.addEventListener('change', () => this.setTanggalAdmin(DOM.adminTanggalFilter.value, true));
+        }
+
+        ['rekapBulan','rekapTahun'].forEach((id) => {
+          if (DOM[id]) DOM[id].addEventListener('change', () => {
+            if (STATE.rekapBulanan && STATE.rekapBulanan.rows && STATE.rekapBulanan.rows.length) {
+              UI.renderRekapBulanan({ rows: [] });
+              if (DOM.rekapBulananInfo) DOM.rekapBulananInfo.textContent = 'Filter berubah. Tekan Tampilkan Rekap untuk memuat ulang.';
+            }
+          });
+        });
+
+        if (DOM.rekapPegawai) {
+          DOM.rekapPegawai.addEventListener('change', () => {
+            // Jika tabel sudah pernah dimuat, ganti pilihan pegawai langsung memuat ulang tabel.
+            if (STATE.rekapBulanan && STATE.rekapBulanan.rows && STATE.rekapBulanan.rows.length) {
+              this.muatRekapBulanan();
+            }
+          });
         }
 
         window.addEventListener('online', () => UI.updateNetworkStatus());
@@ -2617,8 +3007,90 @@ ctx.scale(-1, 1);
         if (!STATE.adminTanggal) STATE.adminTanggal = STORAGE.todayKey();
         if (DOM.adminTanggalFilter) DOM.adminTanggalFilter.value = STATE.adminTanggal;
         UI.tampilkanAdmin();
+        UI.isiFilterRekapBulanan();
+        UI.setAdminTab(STATE.adminTabAktif || 'harian');
         this.muatAdminDariCache();
-        await this.muatRekapAdminHariIni(false);
+        if ((STATE.adminTabAktif || 'harian') === 'harian') {
+          await this.muatRekapAdminHariIni(false);
+        }
+      },
+
+      bukaTabAdmin(tab) {
+        UI.setAdminTab(tab);
+        UI.isiFilterRekapBulanan();
+        if (tab === 'harian') this.muatRekapAdminHariIni(false);
+        if (tab === 'bulanan') this.muatDaftarPegawaiBulanan();
+      },
+
+      async muatDaftarPegawaiBulanan() {
+        if (!DOM.rekapPegawai) return;
+        try {
+          const res = await API.daftarPegawai();
+          if (res && res.sukses && Array.isArray(res.data)) {
+            UI.isiDaftarPegawaiBulanan(res.data);
+          }
+        } catch (err) {
+          // Jika gagal, dropdown tetap berisi Semua Pegawai agar rekap umum tetap berjalan.
+        }
+      },
+
+      async muatRekapBulanan() {
+        const bulan = Number(DOM.rekapBulan?.value || (new Date().getMonth() + 1));
+        const tahun = Number(DOM.rekapTahun?.value || new Date().getFullYear());
+        const idPegawai = DOM.rekapPegawai?.value || 'SEMUA';
+        if (!bulan || !tahun) {
+          UI.setStatus('Bulan dan tahun wajib diisi.', 'error');
+          return;
+        }
+
+        UI.setStatus('Memuat rekap bulanan...', 'warning');
+        try {
+          const res = await API.rekapBulanan(bulan, tahun, idPegawai);
+          if (res && res.sukses) {
+            UI.renderRekapBulanan(res.data || { rows: [] });
+            UI.setStatus('Rekap bulanan berhasil dimuat.', 'success');
+          } else {
+            UI.renderRekapBulanan({ rows: [] });
+            UI.setStatus((res && res.pesan) || 'Rekap bulanan kosong.', 'warning');
+          }
+        } catch (err) {
+          UI.setStatus('Gagal memuat rekap bulanan: ' + err.message, 'error');
+        }
+      },
+
+      downloadRekapBulananCSV() {
+        const payload = STATE.rekapBulanan || {};
+        const rows = Array.isArray(payload.rows) ? payload.rows : [];
+        if (!rows.length) {
+          UI.setStatus('Belum ada rekap bulanan untuk diunduh.', 'warning');
+          return;
+        }
+        const mode = String(payload.mode || 'semua').toLowerCase();
+        const kolom = mode === 'pegawai'
+          ? [['tanggal','Tanggal'], ['status','Status'], ['datang','Datang'], ['pulang','Pulang'], ['keterangan','Keterangan']]
+          : [['nama','Nama Pegawai'], ['dinasPagi','Dinas Pagi'], ['dinasSore','Dinas Sore'], ['dinasMalam','Dinas Malam'], ['dinasLuar','Dinas Luar'], ['sakit','Sakit'], ['cuti','Cuti'], ['libur','Libur'], ['lepasMalam','Lepas Malam']];
+
+        function csvCell(v) {
+          const teks = String(v ?? '').replace(/"/g, '""');
+          return '"' + teks + '"';
+        }
+
+        const csv = [kolom.map(k => csvCell(k[1])).join(',')].concat(rows.map(row => {
+          return kolom.map(k => csvCell(row[k[0]])).join(',');
+        })).join('\n');
+
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const bulan = String(DOM.rekapBulan?.value || '').padStart(2, '0');
+        const tahun = DOM.rekapTahun?.value || '';
+        a.href = url;
+        a.download = 'rekap_bulanan_absensi_' + tahun + '_' + bulan + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        UI.setStatus('CSV rekap bulanan berhasil dibuat.', 'success');
       },
 
       setTanggalAdmin(tanggal, refresh) {

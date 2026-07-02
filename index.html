@@ -96,42 +96,9 @@
     .face-guide { position: absolute; width: 176px; height: 218px; border: 3px dashed rgba(255,255,255,.75); border-radius: 50%; top: 43%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
     .mini-action, .gps-refresh { position: absolute; width: 42px; height: 42px; padding: 0; margin: 0; border-radius: 50%; color: white; font-weight: 900; z-index: 5; }
     .mini-action { top: 50%; right: calc(50% - 72px); background: rgba(15, 23, 42, .78); font-size: 20px; box-shadow: 0 6px 14px rgba(0,0,0,.25); }
-    .gps-box { 
-  position: relative; /* WAJIB: Menjadi patokan posisi tombol absolute */
-  display: grid; 
-  gap: 8px; 
-  margin-top: 25px;   /* Ditambah sedikit agar tombol di atas tidak menabrak elemen lain di luarnya */
-  padding: 16px 12px 12px 12px; /* Padding atas ditambah sedikit agar teks pertama tidak terlalu rapat */
-  border-radius: 14px; 
-  background: #f8fafc; 
-  border: 1px solid #e2e8f0; 
-  font-size: 13px; 
-}
-
-.gps-refresh { 
-  position: absolute; /* WAJIB: Mengaktifkan mode koordinat */
-  top: -17px;         /* Menggeser tombol ke atas sudut (setengah tinggi tombol keluar dari kotak) */
-  right: 12px;        /* Jarak dari tepi kanan kotak */
-  
-  /* Sisa kode Anda */
-  width: 34px; 
-  height: 34px; 
-  background: #0f766e; 
-  color: white;       /* Memastikan warna ikon refresh tetap putih */
-  font-size: 16px; 
-  border: none;
-  border-radius: 50%; /* Membuat tombol bulat sempurna */
-  cursor: pointer;
-  
-  /* Membuat ikon ↻ pas di tengah-tengah lingkaran */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  /* Opsional: Tambahan shadow agar tombol terlihat 'hidup' saat melayang */
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); 
-  z-index: 10;
-}    .row { display: flex; justify-content: space-between; gap: 10px; }
+    .gps-refresh { top: 8px; right: 8px; width: 34px; height: 34px; background: #0f766e; font-size: 16px; }
+    .gps-box { display: grid; gap: 8px; margin-top: 10px; padding: 12px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 13px; }
+    .row { display: flex; justify-content: space-between; gap: 10px; }
     .row span:first-child { color: #64748b; }
     .row span:last-child { font-weight: 700; text-align: right; }
 
@@ -567,9 +534,9 @@
 
       <div class="gps-box">
         <button id="btnUlangGps" type="button" class="gps-refresh hidden" data-action="get-gps" title="Ambil ulang GPS">↻</button>
-        <div class="row"><span>Status</span><span id="gpsStatus">Belum diambil</span></div>
-        <div class="row"><span>Jarak</span><span id="gpsLat">-</span></div>
-        <div class="row"><span>GPS</span><span id="gpsLng">-</span></div>
+        <div class="row"><span>Status GPS</span><span id="gpsStatus">Belum diambil</span></div>
+        <div class="row"><span>Latitude</span><span id="gpsLat">-</span></div>
+        <div class="row"><span>Longitude</span><span id="gpsLng">-</span></div>
         <div class="row"><span>Akurasi</span><span id="gpsAcc">-</span></div>
       </div>
 
@@ -628,11 +595,6 @@
     FOTO_QUALITY: 0.70,
     GPS_TIMEOUT_MS: 15000,
     GPS_MAX_AGE_MS: 0,
-    LOKASI_KANTOR: {
-    lat: -3.905983,
-    lng: 119.742084,
-    radius: 100
-  },
     LOCK_SETELAH_KIRIM_MS: 30000,
     PENGUMUMAN_MAX_CHAR: 50,
     PENGUMUMAN_MAX_ITEM: 10,
@@ -934,25 +896,6 @@
   /* ENGINE */
   const ENGINE = {
     jamKeMenit(j) { const b = String(j || '00:00').split(':').map(Number); return ((b[0]||0)*60) + (b[1]||0); },
-    hariIni() {
-  return new Date().getDay(); // 0=Minggu, 5=Jumat
-},
-
-jamPulangNormal(detailAbsen) {
-  const detail = String(detailAbsen || '').toUpperCase();
-
-  // Jumat
-  if (this.hariIni() === 5) {
-    if (detail.includes('PAGI')) return '11:30';
-  }
-
-  // Hari biasa
-  if (detail.includes('PAGI')) return '13:45';
-  if (detail.includes('SORE')) return '20:00';
-  if (detail.includes('MALAM')) return '08:00';
-
-  return '13:45';
-},
     menitSekarang() { const n = new Date(); return (n.getHours()*60) + n.getMinutes(); },
     isTesterMode() { const id = String(STATE.pegawaiAktif && (STATE.pegawaiAktif.idPegawai || STATE.pegawaiAktif.nik) || '').trim(); return CONFIG.MODE_UJI_COBA && id === CONFIG.TESTER_ID; },
     dalamRentangJam(j, m) { m = (typeof m === 'number') ? m : this.menitSekarang(); return m >= this.jamKeMenit(j.mulai) && m <= this.jamKeMenit(j.selesai); },
@@ -1108,82 +1051,14 @@ jamPulangNormal(detailAbsen) {
       return h;
     },
     kelompokkanRiwayatPasangan(r) {
-
-  const hasil = [];
-  const sudah = new Set();
-
-  for (let i = 0; i < r.length; i++) {
-
-    if (sudah.has(i)) continue;
-
-    const item = r[i] || {};
-    const status = String(item.statusAbsen || '').trim();
-
-    // ==========================
-    // PULANG
-    // ==========================
-    if (status === 'Pulang') {
-
-      let datang = null;
-      let idxDatang = -1;
-
-      for (let j = i + 1; j < r.length; j++) {
-
-        if (sudah.has(j)) continue;
-
-        const calon = r[j] || {};
-
-        if (String(calon.statusAbsen || '').trim() === 'Datang') {
-          datang = calon;
-          idxDatang = j;
-          break;
-        }
+      const h = [];
+      for (let i=0;i<r.length;i++) {
+        const it = r[i] || {}; const s = String(it.statusAbsen||it.status||'').trim();
+        if (s === 'Pulang') { let d = null; for (let j=i+1;j<r.length;j++){ const k = r[j]||{}; if (String(k.statusAbsen||k.status||'').trim()==='Datang'){ d=k; break; } } if (d) h.push({datang:d, pulang:it}); }
+        if (s === 'Datang') { const sd = h.some(function(p){return p.datang===it;}); if (!sd) h.push({datang:it, pulang:null}); }
       }
-
-      hasil.push({
-        jenis: 'absensi',
-        datang: datang,
-        pulang: item
-      });
-
-      sudah.add(i);
-
-      if (idxDatang >= 0)
-        sudah.add(idxDatang);
-
-      continue;
-    }
-
-    // ==========================
-    // DATANG TANPA PULANG
-    // ==========================
-    if (status === 'Datang') {
-
-      hasil.push({
-        jenis: 'absensi',
-        datang: item,
-        pulang: null
-      });
-
-      sudah.add(i);
-      continue;
-    }
-
-    // ==========================
-    // SELURUH STATUS LAIN
-    // ==========================
-    hasil.push({
-      jenis: 'keterangan',
-      datang: item,
-      pulang: null
-    });
-
-    sudah.add(i);
-
-  }
-
-  return hasil;
-},
+      return h;
+    },
     hitungDurasiJam(d, p) {
       try { if (!d||!p) return '-'; const a = this.formatJamTampilan(d.jam).split(':').map(Number); const b = this.formatJamTampilan(p.jam).split(':').map(Number);
         let s = ((b[0]*60)+b[1])-((a[0]*60)+a[1]); if (s<0) s+=24*60;
@@ -1197,294 +1072,34 @@ jamPulangNormal(detailAbsen) {
         'Dinas Luar':'Silahkan kembali isi Absensi Kehadiran saat mulai bertugas' };
       return p[d] || 'Keterangan tercatat.';
     },
-    // ===============================
-// MESIN STATUS
-// ===============================
-
-hitungJarakMeter(lat1, lon1, lat2, lon2) {
-
-  if ([lat1, lon1, lat2, lon2].some(v => isNaN(Number(v)))) {
-    return Infinity;
-  }
-
-  const R = 6371000;
-
-  const dLat = (Number(lat2) - Number(lat1)) * Math.PI / 180;
-  const dLon = (Number(lon2) - Number(lon1)) * Math.PI / 180;
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(Number(lat1) * Math.PI / 180) *
-    Math.cos(Number(lat2) * Math.PI / 180) *
-    Math.sin(dLon / 2) *
-    Math.sin(dLon / 2);
-
-  const c =
-    2 * Math.atan2(
-      Math.sqrt(a),
-      Math.sqrt(1 - a)
-    );
-
-  return Math.round(R * c);
-
-},
-
-statusLokasi(lat, lng) {
-
-  const kantor = CONFIG.LOKASI_KANTOR;
-
-  const jarak = this.hitungJarakMeter(
-    lat,
-    lng,
-    kantor.lat,
-    kantor.lng
-  );
-
-  return jarak <= kantor.radius
-    ? 'Puskesmas'
-    : 'Luar Puskesmas';
-
-},
-
-formatJarak(jarak) {
-
-  jarak = Number(jarak) || 0;
-
-  if (jarak < 1000) {
-    return Math.round(jarak) + ' meter';
-  }
-
-  return (jarak / 1000).toFixed(1).replace('.', ',') + ' km';
-
-},
-
-formatDurasi(totalMenit) {
-
-  totalMenit = Math.max(
-    0,
-    parseInt(totalMenit || 0, 10)
-  );
-
-  const jam = Math.floor(totalMenit / 60);
-  const menit = totalMenit % 60;
-
-  if (jam === 0) {
-    return menit + ' menit';
-  }
-
-  if (menit === 0) {
-    return jam + ' jam';
-  }
-
-  return jam + ' jam ' + menit + ' menit';
-
-},
-
-statusDatang(detailAbsen, waktu) {
-
-  const menit =
-    waktu.getHours() * 60 +
-    waktu.getMinutes();
-
-  let batasMasuk = null;
-
-  switch (detailAbsen) {
-
-    case 'Dinas Pagi':
-    case 'Dinas Pagi + Sore':
-      batasMasuk = 7 * 60 + 30;
-      break;
-
-    case 'Dinas Sore':
-    case 'Dinas Sore + Malam':
-      batasMasuk = 14 * 60;
-      break;
-
-    case 'Dinas Malam':
-    case 'Dinas Malam + Pagi':
-      batasMasuk = 20 * 60;
-      break;
-
-    default:
-      return '';
-
-  }
-
-  const selisih = menit - batasMasuk;
-
-  if (selisih <= 0) {
-    return 'Tepat Waktu';
-  }
-
-  return 'Terlambat ' + this.formatDurasi(selisih);
-
-},
-
-statusPulang(detailAbsen, waktu) {
-
-  const menit =
-    waktu.getHours() * 60 +
-    waktu.getMinutes();
-
-  let batasPulang = null;
-
-  switch (detailAbsen) {
-
-    case 'Dinas Pagi':
-    case 'Dinas Malam + Pagi':
-
-      batasPulang =
-        waktu.getDay() === 5
-          ? (11 * 60 + 30)
-          : (13 * 60 + 45);
-
-      break;
-
-    case 'Dinas Sore':
-    case 'Dinas Pagi + Sore':
-
-      batasPulang = 20 * 60;
-
-      break;
-
-    case 'Dinas Malam':
-    case 'Dinas Sore + Malam':
-
-      batasPulang = 8 * 60;
-
-      break;
-
-    default:
-      return '';
-
-  }
-
-  const selisih = batasPulang - menit;
-
-  if (selisih > 0) {
-    return 'Pulang Cepat ' + this.formatDurasi(selisih);
-  }
-
-  return 'Tepat Waktu';
-
-},
-
-cekAbsenPulangKadaluarsa(dataDatang) {
-
-  if (!dataDatang || !dataDatang.detailAbsen) {
-    return false;
-  }
-
-  const jadwal =
-    CONFIG.JADWAL_DINAS.Pulang.find(
-      j => j.nama === dataDatang.detailAbsen
-    );
-
-  if (!jadwal) {
-    return false;
-  }
-
-  const sekarang = new Date();
-
-  const menitSekarang =
-    sekarang.getHours() * 60 +
-    sekarang.getMinutes();
-
-  const [jam, menit] =
-    jadwal.selesai.split(':').map(Number);
-
-  const batasMenit =
-    jam * 60 + menit;
-
-  return menitSekarang > batasMenit;
-
-},
-
     teksRingkasanDatang(d) {
-
-  const w = d.timestampClient
-    ? new Date(d.timestampClient)
-    : new Date();
-
-  return [
-    'Tanggal: ' + UTIL.tanggalIndonesia(w),
-    'Pukul: ' + UTIL.jamIndonesia(w),
-    'Status: ' + this.statusDatang(
-      d.detailAbsen || d.detail,
-      w
-    ),
-    'Lokasi: ' + this.statusLokasi(
-      d.latitude,
-      d.longitude
-    ),
-    'Keterangan: ' + (d.keterangan || '')
-  ].join('\n');
-
-},
+      const w = d.timestampClient ? new Date(d.timestampClient) : new Date();
+      return [
+        'Tanggal: ' + UTIL.tanggalIndonesia(w),
+        'Pukul: ' + UTIL.jamIndonesia(w),
+        'Koordinat: ' + this.formatKoordinatTampil(d.latitude) + ', ' + this.formatKoordinatTampil(d.longitude),
+        'Keterangan: ' + (d.keterangan||'')
+      ].join('\n');
+    },
     teksRingkasanPulang(d, p) {
-
-  const wd = d.timestampClient
-    ? new Date(d.timestampClient)
-    : new Date();
-
-  const wp = p.timestampClient
-    ? new Date(p.timestampClient)
-    : new Date();
-
-  const detail =
-    p.detailAbsen ||
-    d.detailAbsen ||
-    p.detail ||
-    d.detail;
-
-  const isMalam = [
-    'Dinas Malam',
-    'Dinas Sore + Malam',
-    'Dinas Malam + Pagi'
-  ].includes(detail);
-
-  const im = isMalam
-    ? '\nStatus hari ini otomatis: Lepas Malam'
-    : '';
-
-  let selisihText = '-';
-
-  if (
-    wd &&
-    wp &&
-    !isNaN(wd.getTime()) &&
-    !isNaN(wp.getTime())
-  ) {
-    selisihText = this.formatDurasiKerja(wp - wd);
-  }
-
-  return [
-
-    'Tanggal tugas: ' + (p.tanggalTugas || d.tanggalTugas || STORAGE.todayKey()),
-
-    'Datang: ' + UTIL.jamIndonesia(wd),
-
-    'Pulang: ' + UTIL.jamIndonesia(wp),
-
-    'Status: ' + this.statusPulang(
-      detail,
-      wp
-    ),
-
-    'Lama kerja: ' + selisihText,
-
-    'Jenis dinas: ' + (detail || '-'),
-
-    'Lokasi: ' + this.statusLokasi(
-      p.latitude,
-      p.longitude
-    ),
-
-    'Keterangan: ' + (p.keterangan || d.keterangan || '') + im
-
-  ].join('\n');
-
-},
+      const wd = d.timestampClient ? new Date(d.timestampClient) : new Date();
+      const wp = p.timestampClient ? new Date(p.timestampClient) : new Date();
+      const isMalam = ['Dinas Malam', 'Dinas Sore + Malam', 'Dinas Malam + Pagi'].indexOf(p.detailAbsen||d.detailAbsen||p.detail||d.detail) !== -1;
+      const im = isMalam ? '\nStatus hari ini otomatis: Lepas Malam' : '';
+      let selisihText = '-';
+      if (wd && wp && !isNaN(wd.getTime()) && !isNaN(wp.getTime())) {
+        selisihText = this.formatDurasiKerja(wp - wd);
+      }
+      return [
+        'Tanggal tugas: ' + (p.tanggalTugas||d.tanggalTugas||STORAGE.todayKey()),
+        'Datang: ' + UTIL.jamIndonesia(wd),
+        'Pulang: ' + UTIL.jamIndonesia(wp),
+        'Lama kerja: ' + selisihText,
+        'Jenis dinas: ' + (p.detailAbsen||d.detailAbsen||p.detail||d.detail||'-'),
+        'Koordinat pulang: ' + this.formatKoordinatTampil(p.latitude) + ', ' + this.formatKoordinatTampil(p.longitude),
+        'Keterangan: ' + (p.keterangan||d.keterangan||'') + im
+      ].join('\n');
+    },
     teksRingkasanKeterangan(d) {
       return ['Tanggal: ' + UTIL.tanggalIndonesia(new Date()),'Pukul: ' + UTIL.jamIndonesia(new Date()),'Keterangan: ' + (d.keterangan||'')].join('\n');
     },
@@ -1629,58 +1244,27 @@ else if (
       this.tutupKamera();
     },
     ambilGPS() {
-
-  return new Promise(function(resolve, reject){
-
-    if (!navigator.geolocation) {
-      reject(new Error('Lokasi tidak dapat digunakan di browser ini.'));
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(function(pos){
-
-      const lat = Number(pos.coords.latitude);
-      const lng = Number(pos.coords.longitude);
-
-      const jarak = ENGINE.hitungJarakMeter(
-        lat,
-        lng,
-        CONFIG.LOKASI_KANTOR.lat,
-        CONFIG.LOKASI_KANTOR.lng
-      );
-
-      resolve({
-        latitude: lat.toFixed(6),
-        longitude: lng.toFixed(6),
-        accuracy: String(Math.round(pos.coords.accuracy || 0)),
-        jarak: jarak,
-        lokasi: ENGINE.statusLokasi(lat, lng)
+      return new Promise(function(resolve, reject){
+        if (!navigator.geolocation) { reject(new Error('Lokasi tidak dapat digunakan di browser ini.')); return; }
+        navigator.geolocation.getCurrentPosition(function(pos){
+          const lat = parseFloat(pos.coords.latitude).toFixed(6);
+          const lng = parseFloat(pos.coords.longitude).toFixed(6);
+          resolve({
+            latitude: lat,
+            longitude: lng,
+            accuracy: String(Math.round(pos.coords.accuracy||0))
+          });
+        }, function(err){
+          let p='Gagal mengambil lokasi.';
+          if (err.code===1) p='Izin lokasi ditolak. Aktifkan izin lokasi untuk aplikasi ini.';
+          if (err.code===2) p='Lokasi tidak tersedia. Pastikan GPS HP aktif.';
+          if (err.code===3) p='Pengambilan lokasi terlalu lama. Coba ulangi.';
+          reject(new Error(p));
+        }, { enableHighAccuracy: true, timeout: CONFIG.GPS_TIMEOUT_MS, maximumAge: CONFIG.GPS_MAX_AGE_MS });
       });
-
-    }, function(err){
-
-      let p = 'Gagal mengambil lokasi.';
-
-      if (err.code === 1)
-        p = 'Izin lokasi ditolak. Aktifkan izin lokasi untuk aplikasi ini.';
-
-      if (err.code === 2)
-        p = 'Lokasi tidak tersedia. Pastikan GPS HP aktif.';
-
-      if (err.code === 3)
-        p = 'Pengambilan lokasi terlalu lama. Coba ulangi.';
-
-      reject(new Error(p));
-
-    }, {
-      enableHighAccuracy: true,
-      timeout: CONFIG.GPS_TIMEOUT_MS,
-      maximumAge: CONFIG.GPS_MAX_AGE_MS
-    });
-
-  });
-},
+    }
   };
+
   /* UI */
   const UI = {
     show(e) { if (e) e.classList.remove('hidden'); },
@@ -1889,167 +1473,81 @@ else if (
 
     // Tampilkan Informasi Akhir Absen Tanpa Summary Pulang Terpisah
     tampilkanSelesaiAbsenHariIni() {
+      this.hide(DOM.absenDatangSummary);
+      this.show(DOM.formAbsensiFields);
+      
+      this.hide(DOM.containerDetailAbsen);
+      this.hide(DOM.detailAbsen);
+      this.hide(DOM.containerKeterangan);
+      this.hide(DOM.keterangan);
+      this.hide(DOM.btnMulaiAbsen);
+      this.hide(DOM.modeSwitch);
+      this.hide(DOM.noteFormAbsensi);
 
-  this.hide(DOM.absenDatangSummary);
-  this.show(DOM.formAbsensiFields);
+      const stateObj = STATE.absensiHariIni;
+      let title = "Absensi Anda Hari Ini";
+      let content = "";
+      let alertStyle = "background: #f0fdf4; border-color: #bbf7d0; color: #166534;";
 
-  this.hide(DOM.containerDetailAbsen);
-  this.hide(DOM.detailAbsen);
-  this.hide(DOM.containerKeterangan);
-  this.hide(DOM.keterangan);
-  this.hide(DOM.btnMulaiAbsen);
-  this.hide(DOM.modeSwitch);
-  this.hide(DOM.noteFormAbsensi);
+      if (stateObj.status === 'SELESAI') {
+        title = "✔️ Absensi Selesai";
+        const d = stateObj.datang || {};
+        const p = stateObj.pulang || {};
+        const tanggalTugas =
+  d.timestampClient
+    ? UTIL.tanggalIndonesia(new Date(d.timestampClient))
+    : '-';
+        content = `
+          <strong>Tugas / Dinas:</strong> ${stateObj.detail || '-'}<br>
+          <strong>Tanggal Tugas:</strong> ${tanggalTugas}<br>
+          <strong>Absen Datang:</strong> ${UTIL.jamIndonesia(d.timestampClient || '')}<br>
+          <strong>Absen Pulang:</strong> ${UTIL.jamIndonesia(p.timestampClient || '')}<br>
+          <strong>Total Jam Kerja:</strong> ${ENGINE.formatDurasiKerja(new Date(p.timestampClient) - new Date(d.timestampClient))}<br>
+          <strong>Keterangan:</strong> ${p.keterangan || d.keterangan || 'Selesai'}
+        `;
+      } else if (stateObj.status === 'KETERANGAN') {
+        title = "🟢 Status: " + stateObj.detail;
+        const d = stateObj.datang || {};
+        const tanggalTugas =
+  d.timestampClient
+    ? UTIL.tanggalIndonesia(new Date(d.timestampClient))
+    : UTIL.tanggalIndonesia(new Date());
+        content = `
+        <strong>Tanggal Tugas:</strong> ${tanggalTugas}<br>  
+        <strong>Waktu Kirim:</strong> ${UTIL.jamIndonesia(d.timestampClient || '')}<br>
+          <strong>Keterangan:</strong> ${d.keterangan || '-'}<br>
+          <div style="margin-top:8px; font-weight:800; font-style:italic;">${ENGINE.pesanKeterangan(stateObj.detail)}</div>
+        `;
+      } else if (stateObj.status === 'TIDAK_ABSEN_PULANG') {
+        title = "⚠️ Melewati Batas Absen Pulang";
+        alertStyle = "background: #fffbeb; border-color: #fde68a; color: #92400e;";
+        const d = stateObj.datang || {};
 
-  const stateObj = STATE.absensiHariIni;
+const tanggalTugas =
+  d.timestampClient
+    ? UTIL.tanggalIndonesia(new Date(d.timestampClient))
+    : '-';
 
-  let title = "Absensi Anda Hari Ini";
-  let content = "";
-  let alertStyle = "background: #f0fdf4; border-color: #bbf7d0; color: #166534;";
+content = `
+  <strong>Tugas / Dinas:</strong> ${stateObj.detail || '-'}<br>
+  <strong>Tanggal Tugas:</strong> ${tanggalTugas}<br>
+  <strong>Absen Datang:</strong> ${UTIL.jamIndonesia(d.timestampClient || '')}<br>
+  <span style="color:#b45309; font-weight:700;">
+    Status tugas Anda hari ini telah ditutup karena melewati batas waktu pulang dinas tanpa pelaporan keluar.
+  </span>
+`;
+      }
 
-  if (stateObj.status === 'SELESAI') {
-
-    title = "✔️ Absensi Selesai";
-
-    const d = stateObj.datang || {};
-    const p = stateObj.pulang || {};
-
-    const tanggalTugas =
-      d.timestampClient
-        ? UTIL.tanggalIndonesia(new Date(d.timestampClient))
-        : '-';
-
-    const detail =
-      stateObj.detail ||
-      d.detailAbsen ||
-      p.detailAbsen ||
-      d.detail ||
-      p.detail ||
-      '';
-
-    const waktuDatang = d.timestampClient
-      ? new Date(d.timestampClient)
-      : null;
-
-    const waktuPulang = p.timestampClient
-      ? new Date(p.timestampClient)
-      : null;
-
-    const statusDatang =
-      waktuDatang
-        ? ENGINE.statusDatang(detail, waktuDatang)
-        : '-';
-
-    const statusPulang =
-      waktuPulang
-        ? ENGINE.statusPulang(detail, waktuPulang)
-        : '-';
-
-    const lokasi = ENGINE.statusLokasi(
-      p.latitude || d.latitude,
-      p.longitude || d.longitude
-    );
-
-    const durasi =
-      (waktuDatang && waktuPulang)
-        ? ENGINE.formatDurasiKerja(waktuPulang - waktuDatang)
-        : '-';
-
-    content = `
-      <strong>Tugas / Dinas:</strong> ${detail || '-'}<br>
-
-      <strong>Tanggal Tugas:</strong> ${tanggalTugas}<br>
-
-      <strong>Absen Datang:</strong>
-      ${UTIL.jamIndonesia(d.timestampClient || '')}
-      ${statusDatang ? `(${statusDatang})` : ''}<br>
-
-      <strong>Absen Pulang:</strong>
-      ${UTIL.jamIndonesia(p.timestampClient || '')}
-      ${statusPulang ? `(${statusPulang})` : ''}<br>
-
-      <strong>Lokasi:</strong> ${lokasi}<br>
-
-      <strong>Total Jam Kerja:</strong> ${durasi}<br>
-
-      <strong>Keterangan:</strong> ${p.keterangan || d.keterangan || 'Selesai'}
-    `;
-
-  }
-
-  else if (stateObj.status === 'KETERANGAN') {
-
-    title = "🟢 Status: " + stateObj.detail;
-
-    const d = stateObj.datang || {};
-
-    const tanggalTugas =
-      d.timestampClient
-        ? UTIL.tanggalIndonesia(new Date(d.timestampClient))
-        : UTIL.tanggalIndonesia(new Date());
-
-    content = `
-      <strong>Tanggal Tugas:</strong> ${tanggalTugas}<br>
-
-      <strong>Waktu Kirim:</strong>
-      ${UTIL.jamIndonesia(d.timestampClient || '')}<br>
-
-      <strong>Keterangan:</strong>
-      ${d.keterangan || '-'}<br>
-
-      <div style="margin-top:8px;font-weight:800;font-style:italic;">
-        ${ENGINE.pesanKeterangan(stateObj.detail)}
-      </div>
-    `;
-
-  }
-
-  else if (stateObj.status === 'TIDAK_ABSEN_PULANG') {
-
-    title = "⚠️ Melewati Batas Absen Pulang";
-
-    alertStyle = "background:#fffbeb;border-color:#fde68a;color:#92400e;";
-
-    const d = stateObj.datang || {};
-
-    const tanggalTugas =
-      d.timestampClient
-        ? UTIL.tanggalIndonesia(new Date(d.timestampClient))
-        : '-';
-
-    content = `
-      <strong>Tugas / Dinas:</strong> ${stateObj.detail || '-'}<br>
-
-      <strong>Tanggal Tugas:</strong> ${tanggalTugas}<br>
-
-      <strong>Absen Datang:</strong>
-      ${UTIL.jamIndonesia(d.timestampClient || '')}<br>
-
-      <span style="color:#b45309;font-weight:700;">
-        Status tugas Anda hari ini telah ditutup karena melewati batas waktu pulang dinas tanpa pelaporan keluar.
-      </span>
-    `;
-
-  }
-
-  if (DOM.formAbsensiTitle) {
-    DOM.formAbsensiTitle.textContent = "Status Hari Ini";
-  }
-
-  if (DOM.infoSelesaiAbsen) {
-
-    DOM.infoSelesaiAbsen.style = alertStyle;
-
-    DOM.infoSelesaiAbsen.innerHTML = `
-      <div class="absen-selesai-title">${title}</div>
-      <div class="absen-selesai-grid">${content}</div>
-    `;
-
-    this.show(DOM.infoSelesaiAbsen);
-
-  }
-
-},
+      if (DOM.formAbsensiTitle) DOM.formAbsensiTitle.textContent = "Status Hari Ini";
+      if (DOM.infoSelesaiAbsen) {
+        DOM.infoSelesaiAbsen.style = alertStyle;
+        DOM.infoSelesaiAbsen.innerHTML = `
+          <div class="absen-selesai-title">${title}</div>
+          <div class="absen-selesai-grid">${content}</div>
+        `;
+        this.show(DOM.infoSelesaiAbsen);
+      }
+    },
 
     tampilkanKamera() { this.hide(DOM.formArea); this.hide(DOM.previewArea); this.show(DOM.cameraArea); this.clearStatus(); },
     tampilkanPreview() { this.hide(DOM.cameraArea); this.hide(DOM.formArea); this.show(DOM.previewArea); this.resetGpsView(); },
@@ -2062,24 +1560,12 @@ else if (
       this.hide(DOM.btnKirim); this.hide(DOM.btnUlangGps); this.show(DOM.btnGps);
     },
     tampilkanGps(l) {
-
-  if (DOM.gpsStatus)
-    DOM.gpsStatus.textContent = l.lokasi;
-
-  if (DOM.gpsLat)
-    DOM.gpsLat.textContent = ENGINE.formatJarak(l.jarak);
-
-  if (DOM.gpsLng)
-    DOM.gpsLng.textContent = this.formatKoordinat(l.latitude) + ', ' + this.formatKoordinat(l.longitude);
-
-  if (DOM.gpsAcc)
-    DOM.gpsAcc.textContent = '±' + l.accuracy + ' m';
-
-  this.show(DOM.btnKirim);
-  this.show(DOM.btnUlangGps);
-  this.hide(DOM.btnGps);
-
-},
+      if (DOM.gpsStatus) DOM.gpsStatus.textContent = 'Berhasil';
+      if (DOM.gpsLat) DOM.gpsLat.textContent = this.formatKoordinat(l.latitude);
+      if (DOM.gpsLng) DOM.gpsLng.textContent = this.formatKoordinat(l.longitude);
+      if (DOM.gpsAcc) DOM.gpsAcc.textContent = l.accuracy+' m';
+      this.show(DOM.btnKirim); this.show(DOM.btnUlangGps); this.hide(DOM.btnGps);
+    },
     tampilkanAdmin() { this.hide(DOM.formArea); this.show(DOM.adminPage); this.renderAdminRekap(STATE.adminRekap); },
     kembaliKeAbsensi() { this.show(DOM.formArea); this.hide(DOM.adminPage); this.renderStatusHariIni(); },
 
@@ -2194,151 +1680,18 @@ else if (
       DOM.adminDetail.classList.remove('hidden');
     },
     renderRiwayatServer(r) {
-
-  if (!DOM.rekapArea || !DOM.rekapContent) return;
-
-  if (!r || !r.length) {
-    DOM.rekapContent.className = 'status';
-    DOM.rekapContent.textContent = 'Belum ada riwayat absensi.';
-    this.show(DOM.rekapArea);
-    return;
-  }
-
-  const data = ENGINE.kelompokkanRiwayatPasangan(r);
-
-  if (!data.length) {
-    DOM.rekapContent.className = 'status';
-    DOM.rekapContent.textContent = 'Belum ada riwayat.';
-    this.show(DOM.rekapArea);
-    return;
-  }
-
-  DOM.rekapContent.className = 'riwayat-list';
-
-  DOM.rekapContent.innerHTML = data.slice(0, 10).map(function (it) {
-
-    const d = it.datang || {};
-    const p = it.pulang || {};
-
-    // ==========================
-    // RIWAYAT ABSENSI
-    // ==========================
-    if (it.jenis === 'absensi') {
-
-      const tgl = d.tanggal || p.tanggal || '-';
-
-const tanggalJudul =
-  d.tanggal
-    ? UTIL.tanggalIndonesia(new Date(d.tanggal))
-    : tgl;
-
-const dinas =
-  d.detailAbsen ||
-  p.detailAbsen ||
-  '-';
-
-const detail = dinas;
-
-const waktuDatang =
-  d.jam
-    ? new Date(d.tanggal + 'T' + d.jam)
-    : null;
-
-const waktuPulang =
-  p.jam
-    ? new Date((p.tanggal || d.tanggal) + 'T' + p.jam)
-    : null;
-const statusDatang =
-  waktuDatang
-    ? ENGINE.statusDatang(detail, waktuDatang)
-    : '';
-
-const statusPulang =
-  waktuPulang
-    ? ENGINE.statusPulang(detail, waktuPulang)
-    : '';
-
-const lokasi =
-  ENGINE.statusLokasi(
-    p.latitude || d.latitude,
-    p.longitude || d.longitude
-  );
-
-const jamDatang =
-  d.jam
-    ? ENGINE.formatJamTampilan(d.jam)
-    : '-';
-
-const jamPulang =
-  p.jam
-    ? ENGINE.formatJamTampilan(p.jam)
-    : '-';
-
-const durasi =
-  p.jam
-    ? ENGINE.hitungDurasiJam(d, p)
-    : 'Belum absen pulang';
-
-const isi = [
-  'Datang : ' + jamDatang + (statusDatang ? ' (' + statusDatang + ')' : ''),
-  'Pulang : ' + jamPulang + (statusPulang ? ' (' + statusPulang + ')' : ''),
-  'Jam kerja : ' + durasi + ' • 📍 ' + lokasi
-].join('\n');
-
-return `
-  <div class="riwayat-card">
-    <div class="title">
-      ${UTIL.escapeHTML(tanggalJudul)} • ${UTIL.escapeHTML(dinas)}
-    </div>
-    <div class="text">${UTIL.escapeHTML(isi)}</div>
-  </div>
-`;
-    }
-
-    // ==========================
-    // RIWAYAT KETERANGAN
-    // ==========================
-
-    const tgl = d.tanggal || '-';
-
-const tanggalJudul =
-  d.tanggal
-    ? UTIL.tanggalIndonesia(new Date(d.tanggal))
-    : tgl;
-
-const status =
-  d.detailAbsen ||
-  d.statusAbsen ||
-  '-';
-
-const ket =
-  d.keterangan ||
-  d.alasan ||
-  d.catatan ||
-  ENGINE.pesanKeterangan(status) ||
-  '-';
-
-return `
-  <div class="riwayat-card">
-    <div class="title">
-      ${UTIL.escapeHTML(tanggalJudul)} • ${UTIL.escapeHTML(status)}
-    </div>
-    <div class="text">
-      ${UTIL.escapeHTML(ket)}
-    </div>
-  </div>
-`;
-
-  }).join('\n');
-
-  this.show(DOM.rekapArea);
-
-  DOM.rekapArea.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
-  });
-
-},
+      if (!DOM.rekapArea||!DOM.rekapContent) return;
+      if (!r||!r.length) { DOM.rekapContent.className='status'; DOM.rekapContent.textContent='Belum ada riwayat absensi.'; this.show(DOM.rekapArea); return; }
+      const p = ENGINE.kelompokkanRiwayatPasangan(r);
+      if (!p.length) { DOM.rekapContent.className='status'; DOM.rekapContent.textContent='Belum ada pasangan absensi datang/pulang.'; this.show(DOM.rekapArea); return; }
+      DOM.rekapContent.className='riwayat-list';
+      DOM.rekapContent.innerHTML = p.slice(0,10).map(function(it){ const d=it.datang||{},pl=it.pulang||{};
+        const tgl=d.tanggal||'-'; const dins=d.detailAbsen||d.detail||'-'; const jd=ENGINE.formatJamTampilan(d.jam); const jp=pl.jam?ENGINE.formatJamTampilan(pl.jam):'-';
+        const du=pl.jam?ENGINE.hitungDurasiJam(d,pl):'Belum absen pulang';
+        const isi=['Datang : '+tgl+' '+jd,'Pulang : '+(pl.tanggal||tgl)+' '+jp,'Jam kerja : '+du].join('\n');
+        return '<div class="riwayat-card"><span class="badge">'+UTIL.escapeHTML(tgl)+'</span><div class="title">'+UTIL.escapeHTML(dins)+'</div><div class="text">'+UTIL.escapeHTML(isi)+'</div></div>';
+      }).join('\n'); this.show(DOM.rekapArea); DOM.rekapArea.scrollIntoView({behavior:'smooth',block:'start'});
+    },
     renderRiwayatLokal() {
       const r = STORAGE.ambilRiwayat(); if (!DOM.rekapArea||!DOM.rekapContent) return;
       if (!r.length) { DOM.rekapContent.className='status'; DOM.rekapContent.textContent='Belum ada riwayat absensi lokal.'; this.show(DOM.rekapArea); return; }
@@ -2616,13 +1969,10 @@ return `
       }
       if (DOM.btnModeKeterangan) DOM.btnModeKeterangan.disabled = true;
       if (DOM.keterangan) {
-  DOM.keterangan.value = '';
-
-  const jamPulang = ENGINE.jamPulangNormal(dDinas);
-  DOM.keterangan.placeholder = 'Contoh: Pulang sesuai jadwal (' + jamPulang + ')';
-
-  setTimeout(() => DOM.keterangan.focus(), 80);
-}
+        DOM.keterangan.value = '';
+        DOM.keterangan.placeholder = 'Contoh: Pulang sesuai jadwal';
+        setTimeout(()=>DOM.keterangan.focus(), 80);
+      }
       UI.updateTombolMulaiAbsen();
       UI.setStatus('Isi keterangan pulang terlebih dahulu. Jenis dinas mengikuti absensi datang (' + dDinas + ') and tidak bisa diubah.', 'warning');
     },

@@ -846,7 +846,7 @@
      KONFIGURASI
   ========================================================= */
   const CONFIG = {
-    WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyhnEMLfyf8iLQw186Yo2op-H77KpUcrZrp5DTUXK43pTvAw-an82j6cwPP3znB-V-T/exec',
+    WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwIj6T9mjMdMAQRabBZtA1A5juuOHK24QAxzujK4cawtrBoTFTVm7MvTVyyb_b0A-r7/exec',
     SHARED_SECRET: 'absn_lawawoi_2026',
     ADMIN_IDS: ['198001022005021003','197211112005021003','198404152010012029','199509282024212015'],
     MODE_UJI_COBA: true,
@@ -1043,8 +1043,8 @@
     ambilPegawai() { return this.read(this.pegawaiKey(), null); },
     absenHariIniKey(t) { return this.key('absen_hari_ini_' + (t || this.todayKey())); },
     
-    ambilAbsensiHariIni() { 
-      return this.read(this.absenHariIniKey(), {
+    ambilAbsensiHariIni(tanggal) { 
+      return this.read(this.absenHariIniKey(tanggal), {
         status: "BELUM_ABSEN",
         detail: "",
         datang: null,
@@ -1272,9 +1272,11 @@
       return await this.idbPutRecord('outbox_absensi', Object.assign({}, lama, patch || {}, { diperbaruiPada: Date.now() }));
     },
     async selesaiOutboxAbsensi(id, hasil) {
-      const lama = await this.idbGetRecord('outbox_absensi', id);
-      if (!lama) return;
-      await this.idbPutRecord('outbox_absensi', Object.assign({}, lama, hasil || {}, { statusSync: 'SELESAI', selesaiPada: Date.now(), diperbaruiPada: Date.now(), fotoBase64: '' }));
+      // Setelah server mengonfirmasi data tersimpan, hapus langsung dari antrean
+      // lokal (bukan sekadar ditandai SELESAI). Ini memastikan transaksi yang
+      // sudah terkirim tidak akan pernah terambil/terkirim ulang oleh proses
+      // sinkronisasi latar belakang mana pun.
+      try { await this.idbDeleteRecord('outbox_absensi', id); } catch (e) {}
     },
 
     async ambilCacheAdminIDB(t) {
@@ -2844,6 +2846,12 @@ renderThumbnailFoto(foto) {
     lihatAdminDetail(j, t) { document.querySelectorAll('[data-admin-chip]').forEach(function(e){e.classList.toggle('active', e===t);}); UI.renderAdminDetail(j); }
   };
 
+  // Penanda transaksi outbox yang SEDANG dalam proses kirim ke server saat ini juga
+  // (in-flight). Dipakai supaya proses pengiriman latar belakang (interval, event
+  // 'online', saat app dibuka) tidak pernah mengirim ulang transaksi yang sama
+  // secara bersamaan -> mencegah data absensi terkirim dobel ke server.
+  const OUTBOX_INFLIGHT = new Set();
+
   const APP = {
     async mulai() {
       initDOM();
@@ -3248,6 +3256,12 @@ renderThumbnailFoto(foto) {
 
     async kirimSatuOutbox(data, tampilStatus) {
       const id = String(data.idTransaksi || '').trim();
+      // Jika transaksi ini sedang diproses oleh pemanggil lain (mis. proses latar
+      // belakang vs interval retry berjalan bersamaan), jangan kirim dobel.
+      if (OUTBOX_INFLIGHT.has(id)) {
+        throw new Error('Transaksi ini sedang diproses pengiriman lain, ditunda.');
+      }
+      OUTBOX_INFLIGHT.add(id);
       try {
         await STORAGE.updateOutboxAbsensi(id, { statusSync: 'MENGIRIM', percobaan: Number(data.percobaan || 0) + 1, terakhirDicoba: Date.now() });
         const hasil = await API.kirimAbsensi(data);
@@ -3271,55 +3285,85 @@ renderThumbnailFoto(foto) {
           }
         } catch (verifErr) {}
         throw e;
+      } finally {
+        OUTBOX_INFLIGHT.delete(id);
       }
     },
 
-    async terapkanAbsensiBerhasil_(data, hasil) {
+    // opts.paksaTampilkan: true (default) berarti layar SELALU diperbarui — dipakai
+    // untuk aksi langsung yang baru saja dilakukan pegawai sendiri. Untuk proses
+    // sinkronisasi latar belakang (prosesOutbox) yang bisa memproses transaksi lama
+    // milik tanggal lain, panggil dengan paksaTampilkan:false supaya tampilan yang
+    // sedang dilihat pegawai HARI INI tidak ditimpa oleh data lama tersebut.
+    async terapkanAbsensiBerhasil_(data, hasil, opts) {
+      opts = opts || {};
       if (hasil && hasil.linkFoto) data.linkFoto = hasil.linkFoto;
-      const stateLokalLama = STORAGE.ambilAbsensiHariIni();
+      // PENTING: gunakan tanggal milik transaksi ini sendiri, bukan selalu "hari ini",
+      // supaya data lama (mis. absen pulang yang tertunda dari hari sebelumnya) tidak
+      // pernah tergabung dengan absen hari ini milik pegawai.
+      const tglItem = data.tanggalTugas || STORAGE.todayKey();
+      const stateLokalLama = STORAGE.ambilAbsensiHariIni(tglItem);
       let dataTerpadu = {};
       if (data.statusAbsen === 'Datang') {
-        dataTerpadu = { status:'SUDAH_DATANG', detail:data.detailAbsen, datang:data, pulang:null, expired:false, _tanggalTugas:data.tanggalTugas || STORAGE.todayKey() };
+        dataTerpadu = { status:'SUDAH_DATANG', detail:data.detailAbsen, datang:data, pulang:null, expired:false, _tanggalTugas:tglItem };
       } else if (data.statusAbsen === 'Pulang') {
-        dataTerpadu = { status:'SELESAI', detail:data.detailAbsen, datang:stateLokalLama.datang || data, pulang:data, expired:false, _tanggalTugas:stateLokalLama._tanggalTugas || data.tanggalTugas || STORAGE.todayKey() };
+        dataTerpadu = { status:'SELESAI', detail:data.detailAbsen, datang:stateLokalLama.datang || data, pulang:data, expired:false, _tanggalTugas:tglItem };
       } else {
-        dataTerpadu = { status:'KETERANGAN', detail:data.detailAbsen, datang:data, pulang:null, expired:false, _tanggalTugas:data.tanggalTugas || STORAGE.todayKey() };
+        dataTerpadu = { status:'KETERANGAN', detail:data.detailAbsen, datang:data, pulang:null, expired:false, _tanggalTugas:tglItem };
       }
-      STATE.absensiHariIni = dataTerpadu;
       STORAGE.simpanAbsensiHariIni(dataTerpadu);
-      STATE.fotoBase64 = null;
-      STATE.lokasiTerakhir = null;
-      if (data.statusAbsen === 'Pulang') STORAGE.tambahRiwayatLengkap(dataTerpadu);
-      STATE.terakhirServer = Object.assign({}, data, { jam:data.timestampClient, linkFoto:hasil.linkFoto || data.linkFoto || '' });
-      UI.tampilkanFormAbsensi();
+      if (data.statusAbsen === 'Pulang' && dataTerpadu.datang && dataTerpadu.pulang) STORAGE.tambahRiwayatLengkap(dataTerpadu);
+
+      const untukHariIni = tglItem === STORAGE.todayKey();
+      const paksaTampilkan = opts.paksaTampilkan !== false;
+      if (paksaTampilkan || untukHariIni) {
+        STATE.absensiHariIni = dataTerpadu;
+        STATE.fotoBase64 = null;
+        STATE.lokasiTerakhir = null;
+        STATE.terakhirServer = Object.assign({}, data, { jam:data.timestampClient, linkFoto:hasil.linkFoto || data.linkFoto || '' });
+        UI.tampilkanFormAbsensi();
+      }
     },
 
     terapkanAbsensiLokalMenunggu_(data) {
-      const lama = STORAGE.ambilAbsensiHariIni();
+      const tglItem = data.tanggalTugas || STORAGE.todayKey();
+      const lama = STORAGE.ambilAbsensiHariIni(tglItem);
       let state;
-      if (data.statusAbsen === 'Datang') state = {status:'SUDAH_DATANG', detail:data.detailAbsen, datang:data, pulang:null, expired:false, _tanggalTugas:data.tanggalTugas || STORAGE.todayKey(), _syncPending:true};
-      else if (data.statusAbsen === 'Pulang') state = {status:'SELESAI', detail:data.detailAbsen, datang:lama.datang || data, pulang:data, expired:false, _tanggalTugas:lama._tanggalTugas || data.tanggalTugas || STORAGE.todayKey(), _syncPending:true};
-      else state = {status:'KETERANGAN', detail:data.detailAbsen, datang:data, pulang:null, expired:false, _tanggalTugas:data.tanggalTugas || STORAGE.todayKey(), _syncPending:true};
+      if (data.statusAbsen === 'Datang') state = {status:'SUDAH_DATANG', detail:data.detailAbsen, datang:data, pulang:null, expired:false, _tanggalTugas:tglItem, _syncPending:true};
+      else if (data.statusAbsen === 'Pulang') state = {status:'SELESAI', detail:data.detailAbsen, datang:lama.datang || data, pulang:data, expired:false, _tanggalTugas:tglItem, _syncPending:true};
+      else state = {status:'KETERANGAN', detail:data.detailAbsen, datang:data, pulang:null, expired:false, _tanggalTugas:tglItem, _syncPending:true};
       STATE.absensiHariIni = state;
       STORAGE.simpanAbsensiHariIni(state);
       UI.tampilkanFormAbsensi();
     },
 
     async prosesOutbox() {
-      if (STATE.sedangKirim || !navigator.onLine) return;
-      let daftar = [];
-      try { daftar = await STORAGE.ambilOutboxAbsensi(); } catch (e) { return; }
-      if (!daftar.length) return;
-      for (const item of daftar.sort((a,b) => Number(a.dibuatPada||0)-Number(b.dibuatPada||0))) {
-        if (!navigator.onLine) break;
-        try {
-          const hasil = await this.kirimSatuOutbox(item, false);
-          if (hasil && hasil.sukses && String(item.idPegawai) === this.getIdPegawaiAktif()) {
-            await this.terapkanAbsensiBerhasil_(item, hasil);
+      // Mutex khusus proses sinkronisasi latar belakang: mencegah interval retry,
+      // event 'online', dan pemanggilan saat app dibuka saling tumpang tindih.
+      if (STATE.sedangProsesOutbox || !navigator.onLine) return;
+      STATE.sedangProsesOutbox = true;
+      try {
+        let daftar = [];
+        try { daftar = await STORAGE.ambilOutboxAbsensi(); } catch (e) { return; }
+        if (!daftar.length) return;
+        for (const item of daftar.sort((a,b) => Number(a.dibuatPada||0)-Number(b.dibuatPada||0))) {
+          if (!navigator.onLine) break;
+          // Lewati transaksi yang saat ini sedang dikirim oleh proses lain
+          // (mis. baru saja ditekan pegawai dan masih diproses di latar belakang).
+          if (OUTBOX_INFLIGHT.has(item.idTransaksi)) continue;
+          try {
+            const hasil = await this.kirimSatuOutbox(item, false);
+            if (hasil && hasil.sukses && String(item.idPegawai) === this.getIdPegawaiAktif()) {
+              // paksaTampilkan:false -> jangan timpa layar hari ini kalau item ini
+              // ternyata milik tanggal lain (mis. absen pulang yang tertunda kemarin).
+              await this.terapkanAbsensiBerhasil_(item, hasil, { paksaTampilkan: false });
+            }
+          } catch (e) {
+            await STORAGE.updateOutboxAbsensi(item.idTransaksi, { statusSync:'MENUNGGU', errorTerakhir:e.message });
           }
-        } catch (e) {
-          await STORAGE.updateOutboxAbsensi(item.idTransaksi, { statusSync:'MENUNGGU', errorTerakhir:e.message });
         }
+      } finally {
+        STATE.sedangProsesOutbox = false;
       }
     },
 
@@ -3817,134 +3861,19 @@ renderThumbnailFoto(foto) {
     lihatAdminDetail(j, t) { document.querySelectorAll('[data-admin-chip]').forEach(function(e){e.classList.toggle('active', e===t);}); UI.renderAdminDetail(j); },
   };
 
-  if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    APP.mulai();
-  });
-} else {
-  APP.mulai();
-}
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { APP.mulai(); });
+  else APP.mulai();
 
-
-// ==========================================
-// SISTEM UPDATE PWA
-// ==========================================
-
-if ('serviceWorker' in navigator) {
-
-  let swMenunggu = null;
-  let sedangReload = false;
-
-  // ... kode notifikasi Anda ...
-
-  navigator.serviceWorker.addEventListener(
-    'controllerchange',
-    function () {
-
-      if (sedangReload) {
-        return;
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async function () {
+      try {
+        const reg = await navigator.serviceWorker.register('service-worker.js');
+        reg.update();
+      } catch (e) {
+        console.error(e);
       }
-
-      sedangReload = true;
-
-      console.log(
-        '[PWA] Service Worker baru aktif. Reload aplikasi.'
-      );
-
-      window.location.reload();
-
-    }
-  );
-
-  window.addEventListener('load', async function () {
-
-    try {
-
-      const registration =
-        await navigator.serviceWorker.register(
-          './service-worker.js'
-        );
-
-      console.log(
-        '[PWA] Service Worker terdaftar.'
-      );
-
-
-      // ========================================
-      // PASANG LISTENER TERLEBIH DAHULU
-      // ========================================
-      registration.addEventListener(
-        'updatefound',
-        function () {
-
-          const newWorker =
-            registration.installing;
-
-          if (!newWorker) {
-            return;
-          }
-
-          swMenunggu = newWorker;
-
-          newWorker.addEventListener(
-            'statechange',
-            function () {
-
-              console.log(
-                '[PWA] Status SW:',
-                newWorker.state
-              );
-
-              if (
-                newWorker.state === 'installed' &&
-                navigator.serviceWorker.controller
-              ) {
-
-                console.log(
-                  '[PWA] Versi baru tersedia.'
-                );
-
-                tampilkanNotifikasiUpdate();
-
-              }
-
-            }
-          );
-
-        }
-      );
-
-
-      // ========================================
-      // BARU CEK VERSI TERBARU
-      // ========================================
-      await registration.update();
-
-
-      // ========================================
-      // JIKA SUDAH MENUNGGU
-      // ========================================
-      if (registration.waiting) {
-
-        swMenunggu =
-          registration.waiting;
-
-        tampilkanNotifikasiUpdate();
-
-      }
-
-    } catch (error) {
-
-      console.error(
-        '[PWA] Gagal mendaftarkan Service Worker:',
-        error
-      );
-
-    }
-
-  });
-
-}
+    });
+  }
   </script>
   <div class="dev-footer">by : bahar_sidrap @ 2026</div>
 </body>
